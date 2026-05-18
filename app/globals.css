@@ -2,15 +2,19 @@
 
 :root {
   color-scheme: light;
-  --background: #f6f7f9;
-  --foreground: #15171a;
-  --muted: #667085;
-  --line: #d9dde3;
+  --background: #ffffff;
+  --foreground: #101010;
+  --muted: #666666;
+  --subtle: #8a8a8a;
+  --line: #e5e5e5;
+  --line-strong: #d1d1d1;
   --panel: #ffffff;
-  --accent: #147d64;
-  --accent-strong: #0f5f4c;
-  --warn: #b7791f;
-  --danger: #bd3b44;
+  --panel-soft: #f7f7f8;
+  --panel-active: #ececec;
+  --accent: #12715b;
+  --accent-soft: #e7f4ef;
+  --warn: #9a6a12;
+  --danger: #a3323a;
 }
 
 * {
@@ -20,17 +24,16 @@
 html {
   min-width: 320px;
   background: var(--background);
+  scroll-behavior: smooth;
 }
 
 body {
   margin: 0;
   min-height: 100vh;
-  background:
-    linear-gradient(180deg, rgba(20, 125, 100, 0.08), transparent 280px),
-    var(--background);
+  background: var(--background);
   color: var(--foreground);
   font-family:
-    Inter,
+    Geist,
     ui-sans-serif,
     system-ui,
     -apple-system,
@@ -44,6 +47,10 @@ a {
   text-decoration: none;
 }
 
+.primary-action {
+  color: #ffffff;
+}
+
 button,
 input,
 textarea,
@@ -52,5 +59,9 @@ select {
 }
 
 ::selection {
-  background: rgba(20, 125, 100, 0.18);
+  background: rgba(18, 113, 91, 0.16);
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
 }
