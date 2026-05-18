@@ -9,9 +9,7 @@ This repository owns the browser-facing product experience. Architecture, roadma
 
 ## Current Status
 
-This repository is initialized for the frontend application. The Next.js scaffold will be added during M0 after the project docs are reviewed.
-
-Until the scaffold lands, this README defines the intended repository boundary, runtime expectations, and development conventions.
+The M0 Next.js scaffold is in place. It establishes the route groups, frontend layering, API client boundary, runtime boundary, and verification commands needed before identity and content vertical slices are implemented.
 
 ## Responsibilities
 
@@ -34,26 +32,26 @@ It is not responsible for:
 
 ## Planned Stack
 
-| Area | Choice |
-| --- | --- |
-| Framework | Next.js App Router with React Server Components |
-| Language | TypeScript strict mode |
-| UI | React, Tailwind CSS, Radix UI primitives as needed |
-| State | Zustand only for small client-side session or progress state |
-| Content rendering | Markdown/MDX, KaTeX, Shiki |
-| Runnable Python | Pyodide, lazy-loaded behind `runtime/` |
-| Tests | Vitest, targeted Playwright coverage later |
-| Package manager | pnpm |
+| Area              | Choice                                                       |
+| ----------------- | ------------------------------------------------------------ |
+| Framework         | Next.js 16 App Router with React Server Components           |
+| Language          | TypeScript strict mode                                       |
+| UI                | React, Tailwind CSS, Radix UI primitives as needed           |
+| State             | Zustand only for small client-side session or progress state |
+| Content rendering | Markdown/MDX, KaTeX, Shiki                                   |
+| Runnable Python   | Pyodide, lazy-loaded behind `runtime/`                       |
+| Tests             | Vitest, targeted Playwright coverage later                   |
+| Package manager   | pnpm                                                         |
 
 ## Planned Repository Structure
 
 ```text
 learning-garden-web/
 |-- app/
-|   |-- (community)/      # Public discovery, profiles, discussions
-|   |-- (workspace)/      # Authenticated learning workspace
-|   |-- (studio)/         # Content authoring and editing
-|   `-- (admin)/          # Moderation and review flows
+|   |-- (community)/community/
+|   |-- (workspace)/workspace/
+|   |-- (studio)/studio/
+|   `-- (admin)/admin/
 |-- features/             # Feature modules; no cross-feature imports
 |-- lib/api/              # The only layer that calls the backend API
 |-- runtime/              # Pyodide and browser-only runtime capabilities
@@ -73,28 +71,50 @@ learning-garden-web/
 
 ## Environment Variables
 
-Expected local variables after the scaffold is added:
+Create `.env.local` for local development:
 
 ```bash
 NEXT_PUBLIC_API_BASE_URL=http://localhost:8080
 SERVER_API_BASE_URL=http://localhost:8080
 ```
 
-Do not commit `.env` files. Commit `.env.example` when the scaffold introduces real environment requirements.
+Do not commit `.env` files. `.env.example` contains the committed template.
 
 ## Local Development
-
-Expected commands after the Next.js scaffold is added:
 
 ```bash
 pnpm install
 pnpm dev
+```
+
+Default local URL:
+
+```text
+http://localhost:3000
+```
+
+Use these checks before committing:
+
+```bash
 pnpm lint
 pnpm typecheck
-pnpm test
+pnpm test:run
+pnpm build
 ```
 
 The local frontend should run against a local or deployed `learning-garden-server` instance through REST `/api/v1`.
+
+## Route Surfaces
+
+| URL          | Route group   | Purpose                                                |
+| ------------ | ------------- | ------------------------------------------------------ |
+| `/`          | root          | App-first dashboard for the current learning workspace |
+| `/community` | `(community)` | Public content discovery shell                         |
+| `/workspace` | `(workspace)` | Authenticated learning workspace shell                 |
+| `/studio`    | `(studio)`    | Content authoring shell                                |
+| `/admin`     | `(admin)`     | Future moderation/admin shell                          |
+
+The route group names organize authorization and ownership boundaries. The URL segments stay explicit so the groups do not conflict at `/`.
 
 ## API Contract
 
@@ -126,12 +146,12 @@ feat/runnable-python
 
 ## Roadmap Entry Point
 
-Frontend work starts with M0:
+M0 frontend scaffold includes:
 
-- Initialize Next.js with TypeScript strict mode.
-- Add lint, format, typecheck, and test commands.
-- Establish route groups.
-- Add the `lib/api` boundary.
-- Prepare deployment to Vercel.
+- Next.js with TypeScript strict mode.
+- Lint, format, typecheck, test, and build commands.
+- Route groups for community, workspace, studio, and admin.
+- `lib/api` REST boundary with versioned `/api/v1` URL handling.
+- `runtime/` boundary for future Pyodide work.
 
 See [learning-garden docs](https://github.com/Telran26512/learning-garden/tree/main/docs) for the full roadmap and architecture.
