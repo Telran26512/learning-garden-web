@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { contentApi, learningApi, setApiTransportForTests } from "@/lib/api";
+import { contentApi, learningApi, setApiTransportForTests, socialApi } from "@/lib/api";
 import { createMockApiRepository } from "@/lib/api/mock/repository";
 import { createMockTransport } from "@/lib/api/mock/transport";
 
@@ -77,5 +77,66 @@ describe("M3 review scheduling mock flows", () => {
     expect(result.card.intervalDays).toBeGreaterThan(before!.intervalDays);
     expect(result.nextDueAt).toBe(result.card.dueAt);
     expect(after?.lastReviewedAt).not.toBeNull();
+  });
+});
+
+describe("M4 social mock flows", () => {
+  it("creates and deletes a comment", async () => {
+    useFreshMockTransport();
+
+    const created = await socialApi.createComment({
+      body: "偏置列这段解释有用。",
+      targetId: "concept_linear_regression",
+      targetType: "content",
+    });
+    const comments = await socialApi.getComments({
+      targetId: "concept_linear_regression",
+      targetType: "content",
+    });
+
+    expect(comments).toEqual(expect.arrayContaining([expect.objectContaining({ id: created.id })]));
+
+    await socialApi.deleteComment(created.id);
+    const afterDelete = await socialApi.getComments({
+      targetId: "concept_linear_regression",
+      targetType: "content",
+    });
+
+    expect(afterDelete.some((item) => item.id === created.id)).toBe(false);
+  });
+
+  it("follows a user and marks notification as read", async () => {
+    useFreshMockTransport();
+
+    const followed = await socialApi.followUser("user_ada");
+    const notifications = await socialApi.getNotifications();
+    const unread = notifications.find((item) => item.readAt === null);
+
+    expect(followed.isFollowing).toBe(true);
+    expect(unread).toBeDefined();
+
+    const read = await socialApi.markNotificationRead(unread!.id);
+
+    expect(read.readAt).not.toBeNull();
+  });
+
+  it("creates a discussion and reply", async () => {
+    useFreshMockTransport();
+
+    const discussion = await socialApi.createDiscussion({
+      body: "想比较正规方程和梯度下降的学习顺序。",
+      title: "正规方程应该在梯度下降前学吗？",
+    });
+    const reply = await socialApi.replyToDiscussion(discussion.id, {
+      body: "先学正规方程能更好理解闭式解。",
+      targetId: discussion.id,
+      targetType: "discussion",
+    });
+    const discussions = await socialApi.getDiscussions();
+
+    expect(reply.targetId).toBe(discussion.id);
+    expect(discussions).toEqual(
+      expect.arrayContaining([expect.objectContaining({ id: discussion.id })]),
+    );
   });
 });

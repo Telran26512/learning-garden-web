@@ -1,5 +1,5 @@
 import type { ApiMethod, ApiTransport } from "@/lib/api/transport";
-import type { ListPublicContentQuery } from "@/lib/api/contracts";
+import type { CommentTargetType, ListPublicContentQuery } from "@/lib/api/contracts";
 import type { MockApiRepository } from "@/lib/api/mock/repository";
 import { mockLatency } from "@/lib/api/mock/latency";
 
@@ -86,6 +86,57 @@ function handleRequest(
     return repository.answerReviewCard(decodeURIComponent(reviewMatch[1]!), body as never);
   }
 
+  if (method === "GET" && pathname === "/social/feed") {
+    return repository.getFeed();
+  }
+
+  if (method === "GET" && pathname === "/social/discussions") {
+    return repository.getDiscussions();
+  }
+
+  if (method === "POST" && pathname === "/social/discussions") {
+    return repository.createDiscussion(body as never);
+  }
+
+  const discussionReplyMatch = pathname?.match(/^\/social\/discussions\/([^/]+)\/replies$/);
+  if (discussionReplyMatch && method === "POST") {
+    return repository.replyToDiscussion(decodeURIComponent(discussionReplyMatch[1]!), body as never);
+  }
+
+  if (method === "GET" && pathname === "/social/notifications") {
+    return repository.getNotifications();
+  }
+
+  const notificationMatch = pathname?.match(/^\/social\/notifications\/([^/]+)$/);
+  if (notificationMatch && method === "PATCH") {
+    return repository.markNotificationRead(decodeURIComponent(notificationMatch[1]!));
+  }
+
+  if (method === "POST" && pathname === "/social/follows") {
+    return repository.followUser((body as { userId?: string }).userId ?? "");
+  }
+
+  const followMatch = pathname?.match(/^\/social\/follows\/([^/]+)$/);
+  if (followMatch && method === "DELETE") {
+    return repository.unfollowUser(decodeURIComponent(followMatch[1]!));
+  }
+
+  if (method === "GET" && pathname === "/comments") {
+    return repository.getComments(
+      searchParams.get("targetId") ?? "",
+      readCommentTargetType(searchParams),
+    );
+  }
+
+  if (method === "POST" && pathname === "/comments") {
+    return repository.createComment(body as never);
+  }
+
+  const commentMatch = pathname?.match(/^\/comments\/([^/]+)$/);
+  if (commentMatch && method === "DELETE") {
+    return repository.deleteComment(decodeURIComponent(commentMatch[1]!));
+  }
+
   if (method === "POST" && pathname === "/runtime/python-runs") {
     const request = body as { code?: string };
     return repository.runPython(request.code ?? "");
@@ -100,6 +151,16 @@ function handleRequest(
   }
 
   throw new Error(`Unhandled mock API request: ${method} ${path}`);
+}
+
+function readCommentTargetType(searchParams: URLSearchParams): CommentTargetType {
+  const value = searchParams.get("targetType");
+
+  if (value === "discussion") {
+    return "discussion";
+  }
+
+  return "content";
 }
 
 function readPublicContentType(

@@ -4,7 +4,13 @@ import Link from "next/link";
 import Image from "next/image";
 import type { PublicProfile } from "@/lib/api";
 
-export function UserProfileScreen({ profile }: { profile: PublicProfile }) {
+export function UserProfileScreen({
+  onToggleFollow,
+  profile,
+}: {
+  onToggleFollow: () => Promise<void>;
+  profile: PublicProfile;
+}) {
   return (
     <section className="py-6">
       <Link
@@ -29,9 +35,13 @@ export function UserProfileScreen({ profile }: { profile: PublicProfile }) {
               {profile.bio}
             </p>
           </div>
-          <div className="text-[12px] font-medium text-slate-500">
-            公开主页 · follow 操作将在 M4 接入
-          </div>
+          <button
+            className="focus-ring rounded-md border border-garden-600 px-4 py-2 text-[12px] font-medium text-garden-700 transition hover:bg-garden-50"
+            onClick={onToggleFollow}
+            type="button"
+          >
+            {profile.isFollowing ? "已关注" : "关注"}
+          </button>
         </div>
         <div className="mt-7 grid grid-cols-2 border-y hair py-4 md:grid-cols-4">
           <ProfileMetric label="等级" value={`Lv.${profile.level}`} />

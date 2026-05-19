@@ -5,7 +5,7 @@ import { AppShell } from "@/components/layout/app-shell";
 import { useSynapseNavigation } from "@/components/layout/use-synapse-navigation";
 import { StateSurface } from "@/components/ui/state-surface";
 import { UserProfileScreen } from "@/features/community/user-profile-screen";
-import { contentApi, normalizeApiError } from "@/lib/api";
+import { contentApi, normalizeApiError, socialApi } from "@/lib/api";
 import type { PublicProfile } from "@/lib/api";
 
 export function UserProfileRoute({ id }: { id: string }) {
@@ -37,6 +37,17 @@ export function UserProfileRoute({ id }: { id: string }) {
     };
   }, [id]);
 
+  const toggleFollow = async () => {
+    if (state.status !== "ready") {
+      return;
+    }
+
+    const profile = state.profile.isFollowing
+      ? await socialApi.unfollowUser(state.profile.id)
+      : await socialApi.followUser(state.profile.id);
+    setState({ profile, status: "ready" });
+  };
+
   return (
     <AppShell active="community" goTo={goTo}>
       {state.status === "loading" ? (
@@ -57,7 +68,9 @@ export function UserProfileRoute({ id }: { id: string }) {
           tone="amber"
         />
       ) : null}
-      {state.status === "ready" ? <UserProfileScreen profile={state.profile} /> : null}
+      {state.status === "ready" ? (
+        <UserProfileScreen onToggleFollow={toggleFollow} profile={state.profile} />
+      ) : null}
     </AppShell>
   );
 }

@@ -1,19 +1,30 @@
 import type {
   AnswerReviewCardInput,
+  Comment,
+  CommentTargetType,
   Concept,
+  CreateCommentInput,
   CreateConceptInput,
+  CreateDiscussionInput,
+  Discussion,
   ListPublicContentQuery,
+  NotificationItem,
   PublicContentDetail,
   PublicContentItem,
+  PublicProfile,
   UpdateConceptInput,
   UpdateRoadmapTaskInput,
   User,
 } from "@/lib/api/contracts";
 import {
+  mockActivityFeed,
   mockAdminOverview,
+  mockComments,
   mockConcepts,
   mockCurrentUser,
+  mockDiscussions,
   mockModerationQueue,
+  mockNotifications,
   mockPublicContent,
   mockPublicProfiles,
   mockReviewCards,
@@ -25,9 +36,13 @@ export type MockApiRepository = ReturnType<typeof createMockApiRepository>;
 
 export function createMockApiRepository() {
   let currentUser: User | null = { ...mockCurrentUser };
+  let activityFeed = clone(mockActivityFeed);
+  let comments = clone(mockComments);
   let concepts = clone(mockConcepts);
+  let discussions = clone(mockDiscussions);
+  let notifications = clone(mockNotifications);
   const publicContent = clone(mockPublicContent);
-  const publicProfiles = clone(mockPublicProfiles);
+  let publicProfiles = clone(mockPublicProfiles);
   const roadmapTasks = clone(mockRoadmapTasks);
   const reviewCards = clone(mockReviewCards);
 
@@ -48,7 +63,7 @@ export function createMockApiRepository() {
       card.intervalDays = nextInterval;
       card.ease = getNextEase(card.ease, input.rating);
       card.dueAt = addDaysIso(now, nextInterval);
-      if (input.userCode) {
+      if (input.userCode !== undefined) {
         card.userCode = input.userCode;
       }
 
@@ -56,6 +71,26 @@ export function createMockApiRepository() {
         card: { ...card },
         nextDueAt: card.dueAt,
       };
+    },
+    createComment(input: CreateCommentInput) {
+      const user = requireUser(currentUser);
+      if (input.body.trim().length === 0) {
+        throw createApiDomainError(422, "validation_error", "Comment body is required");
+      }
+
+      const now = new Date().toISOString();
+      const comment: Comment = {
+        author: toPublicAuthor(user),
+        body: input.body,
+        createdAt: now,
+        id: `comment_${comments.length + 1}`,
+        parentId: input.parentId,
+        targetId: input.targetId,
+        targetType: input.targetType,
+        updatedAt: now,
+      };
+      comments = [comment, ...comments];
+      return cloneOne(comment);
     },
     createConcept(input: CreateConceptInput) {
       const user = requireUser(currentUser);
@@ -79,6 +114,45 @@ export function createMockApiRepository() {
       };
       concepts = [concept, ...concepts];
       return { ...concept };
+    },
+    createDiscussion(input: CreateDiscussionInput) {
+      const user = requireUser(currentUser);
+      if (input.title.trim().length === 0 || input.body.trim().length === 0) {
+        throw createApiDomainError(422, "validation_error", "Discussion title and body are required");
+      }
+
+      const now = new Date().toISOString();
+      const discussion: Discussion = {
+        author: toPublicAuthor(user),
+        body: input.body,
+        createdAt: now,
+        id: `discussion_${discussions.length + 1}`,
+        replies: [],
+        replyCount: 0,
+        status: "open",
+        title: input.title,
+        updatedAt: now,
+      };
+      discussions = [discussion, ...discussions];
+      return cloneOne(discussion);
+    },
+    deleteComment(id: string) {
+      requireUser(currentUser);
+      comments = comments.filter((item) => item.id !== id);
+    },
+    followUser(userId: string) {
+      requireUser(currentUser);
+      publicProfiles = publicProfiles.map((profile) =>
+        profile.id === userId
+          ? {
+              ...profile,
+              followerCount: profile.followerCount + (profile.isFollowing ? 0 : 1),
+              isFollowing: true,
+            }
+          : profile,
+      );
+
+      return cloneOne(requirePublicProfile(publicProfiles, userId));
     },
     getAdminOverview() {
       requireAdmin(currentUser);
@@ -142,6 +216,21 @@ export function createMockApiRepository() {
       requireAdmin(currentUser);
       return clone(mockModerationQueue);
     },
+    getComments(targetId: string, targetType: CommentTargetType) {
+      return clone(
+        comments.filter((item) => item.targetId === targetId && item.targetType === targetType),
+      );
+    },
+    getDiscussions() {
+      return clone(discussions);
+    },
+    getFeed() {
+      return clone(activityFeed);
+    },
+    getNotifications() {
+      requireUser(currentUser);
+      return clone(notifications);
+    },
     getReviewQueue() {
       requireUser(currentUser);
       return clone(reviewCards);
@@ -189,6 +278,46 @@ export function createMockApiRepository() {
       requireUser(currentUser);
       currentUser = null;
     },
+    markNotificationRead(id: string) {
+      requireUser(currentUser);
+      const notification = notifications.find((item) => item.id === id);
+
+      if (!notification) {
+        throw createApiDomainError(404, "not_found", "Notification not found");
+      }
+
+      notification.readAt = new Date().toISOString();
+      return cloneOne(notification);
+    },
+    replyToDiscussion(id: string, input: CreateCommentInput) {
+      const user = requireUser(currentUser);
+      const discussion = discussions.find((item) => item.id === id);
+
+      if (!discussion) {
+        throw createApiDomainError(404, "not_found", "Discussion not found");
+      }
+
+      if (input.body.trim().length === 0) {
+        throw createApiDomainError(422, "validation_error", "Reply body is required");
+      }
+
+      const now = new Date().toISOString();
+      const reply: Comment = {
+        author: toPublicAuthor(user),
+        body: input.body,
+        createdAt: now,
+        id: `comment_${comments.length + 1}`,
+        parentId: input.parentId,
+        targetId: id,
+        targetType: "discussion",
+        updatedAt: now,
+      };
+      comments = [reply, ...comments];
+      discussion.replies = [reply, ...discussion.replies];
+      discussion.replyCount = discussion.replies.length;
+      discussion.updatedAt = now;
+      return cloneOne(reply);
+    },
     runPython(code: string) {
       if (code.trim().length === 0) {
         throw createApiDomainError(422, "validation_error", "Python code cannot be empty");
@@ -230,6 +359,20 @@ export function createMockApiRepository() {
       task.updatedAt = new Date().toISOString();
       return { ...task };
     },
+    unfollowUser(userId: string) {
+      requireUser(currentUser);
+      publicProfiles = publicProfiles.map((profile) =>
+        profile.id === userId
+          ? {
+              ...profile,
+              followerCount: Math.max(0, profile.followerCount - (profile.isFollowing ? 1 : 0)),
+              isFollowing: false,
+            }
+          : profile,
+      );
+
+      return cloneOne(requirePublicProfile(publicProfiles, userId));
+    },
   };
 }
 
@@ -249,6 +392,16 @@ function requireAdmin(user: User | null) {
   }
 
   return currentUser;
+}
+
+function requirePublicProfile(profiles: PublicProfile[], id: string) {
+  const profile = profiles.find((item) => item.id === id);
+
+  if (!profile) {
+    throw createApiDomainError(404, "not_found", "Public profile not found");
+  }
+
+  return profile;
 }
 
 function slugify(value: string) {
@@ -308,6 +461,15 @@ function addDaysIso(value: string, days: number) {
   const date = new Date(value);
   date.setDate(date.getDate() + days);
   return date.toISOString();
+}
+
+function toPublicAuthor(user: User) {
+  return {
+    avatarUrl: user.avatarUrl,
+    displayName: user.displayName,
+    id: user.id,
+    level: user.level,
+  };
 }
 
 function clone<T>(value: T[]): T[] {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { adminApi, contentApi, identityApi, learningApi, runtimeApi } from "@/lib/api";
+import { adminApi, contentApi, identityApi, learningApi, runtimeApi, socialApi } from "@/lib/api";
 
 describe("domain API modules", () => {
   it("loads identity, content, learning, runtime, and admin data through facades", async () => {
@@ -13,6 +13,12 @@ describe("domain API modules", () => {
     await expect(contentApi.getPublicProfile("user_raymond")).resolves.toMatchObject({
       publicContentCount: expect.any(Number),
     });
+    await expect(socialApi.getFeed()).resolves.toEqual(
+      expect.arrayContaining([expect.objectContaining({ type: "published_content" })]),
+    );
+    await expect(socialApi.getNotifications()).resolves.toEqual(
+      expect.arrayContaining([expect.objectContaining({ id: "notification_comment_reply" })]),
+    );
     await expect(learningApi.getRoadmap()).resolves.toEqual(
       expect.arrayContaining([expect.objectContaining({ id: "task_ols_bias" })]),
     );

@@ -1,7 +1,11 @@
 import type {
+  ActivityFeedItem,
   AdminOverview,
+  Comment,
   Concept,
+  Discussion,
   ModerationQueueItem,
+  NotificationItem,
   PublicContentItem,
   PublicProfile,
   ReviewCard,
@@ -97,6 +101,12 @@ print("R2 =", r2_score(y, model.predict(X)))`,
 ];
 
 export const mockPublicAuthors = {
+  ada: {
+    avatarUrl: "/avatar.jpg",
+    displayName: "Ada",
+    id: "user_ada",
+    level: 4,
+  },
   raymond: {
     avatarUrl: "/avatar.jpg",
     displayName: "Raymond",
@@ -121,13 +131,13 @@ export const mockPublicContent: PublicContentItem[] = [
     visibility: "public",
   },
   {
-    author: mockPublicAuthors.raymond,
+    author: mockPublicAuthors.ada,
     commentCount: 1,
     contentType: "concept",
     createdAt: "2026-05-18T00:00:00.000Z",
     excerpt: "记录 softmax 与交叉熵合并后的梯度化简和数值稳定处理。",
     id: "content_cross_entropy_public",
-    ownerId: "user_raymond",
+    ownerId: "user_ada",
     slug: "cross-entropy-gradient",
     tags: ["交叉熵", "梯度", "数值稳定"],
     title: "Softmax + 交叉熵梯度的稳定实现",
@@ -153,6 +163,71 @@ export const mockPublicProfiles: PublicProfile[] = [
       { label: "公开内容", value: "8" },
       { label: "连续训练", value: "21 天" },
     ],
+  },
+  {
+    avatarUrl: "/avatar.jpg",
+    bio: "专注优化、数值稳定和论文复现。",
+    displayName: "Ada",
+    followerCount: 42,
+    followingCount: 11,
+    id: "user_ada",
+    isFollowing: false,
+    level: 4,
+    publicContentCount: 5,
+    stats: [
+      { label: "论文", value: "9" },
+      { label: "实验", value: "7" },
+      { label: "评论", value: "31" },
+    ],
+  },
+];
+
+export const mockComments: Comment[] = [
+  {
+    author: mockPublicAuthors.ada,
+    body: "这里用偏置列解释截距非常清楚。",
+    createdAt: "2026-05-19T01:00:00.000Z",
+    id: "comment_bias_column",
+    targetId: "concept_linear_regression",
+    targetType: "content",
+    updatedAt: "2026-05-19T01:00:00.000Z",
+  },
+];
+
+export const mockDiscussions: Discussion[] = [
+  {
+    author: mockPublicAuthors.raymond,
+    body: "一个偏理论, 一个偏优化。你们会怎么安排学习顺序？",
+    createdAt: "2026-05-19T02:00:00.000Z",
+    id: "discussion_ols_vs_gd",
+    replyCount: 0,
+    replies: [],
+    status: "open",
+    title: "正规方程和梯度下降应该先学哪个？",
+    updatedAt: "2026-05-19T02:00:00.000Z",
+  },
+];
+
+export const mockNotifications: NotificationItem[] = [
+  {
+    body: "Ada 回复了你的线性回归公开题解。",
+    createdAt: "2026-05-19T02:30:00.000Z",
+    id: "notification_comment_reply",
+    readAt: null,
+    target: { id: "concept_linear_regression", label: "线性回归公开题解", type: "content" },
+    title: "新的评论",
+    type: "comment",
+  },
+];
+
+export const mockActivityFeed: ActivityFeedItem[] = [
+  {
+    actor: mockPublicAuthors.raymond,
+    createdAt: "2026-05-19T00:30:00.000Z",
+    id: "activity_publish_ols",
+    summary: "发布了线性回归公开题解",
+    target: { id: "concept_linear_regression", label: "线性回归公开题解", type: "content" },
+    type: "published_content",
   },
 ];
 

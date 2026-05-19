@@ -7,5 +7,6 @@ export { contentApi } from "./modules/content";
 export { identityApi } from "./modules/identity";
 export { learningApi } from "./modules/learning";
 export { runtimeApi } from "./modules/runtime";
+export { socialApi } from "./modules/social";
 export { getApiTransport, setApiTransportForTests } from "./transport";
 export type { ApiMethod, ApiTransport } from "./transport";
