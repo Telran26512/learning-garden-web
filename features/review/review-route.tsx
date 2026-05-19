@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { AppShell } from "@/components/layout/app-shell";
 import { useSynapseNavigation } from "@/components/layout/use-synapse-navigation";
 import { StateSurface } from "@/components/ui/state-surface";
+import { applyReviewAnswerToQueue, getCurrentReviewCard } from "@/features/review/review-queue";
 import { ReviewScreen } from "@/features/review/review-screen";
 import { learningApi, normalizeApiError } from "@/lib/api";
 import type { ReviewAnswerRating, ReviewCard } from "@/lib/api";
@@ -12,6 +13,7 @@ export function ReviewRoute() {
   const [cards, setCards] = useState<ReviewCard[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isAnswering, setIsAnswering] = useState(false);
   const [userCode, setUserCode] = useState("");
   const [showCompare, setShowCompare] = useState(false);
   const goTo = useSynapseNavigation();
@@ -45,16 +47,24 @@ export function ReviewRoute() {
   };
 
   const answer = async (rating: ReviewAnswerRating) => {
-    const card = cards[0];
-    if (!card) {
+    const card = getCurrentReviewCard(cards);
+    if (!card || isAnswering) {
       return;
     }
 
-    const result = await learningApi.answerReviewCard(card.id, { rating, userCode });
-    setCards((current) =>
-      current.map((item) => (item.id === result.card.id ? result.card : item)),
-    );
-    setShowCompare(true);
+    setIsAnswering(true);
+    try {
+      const result = await learningApi.answerReviewCard(card.id, { rating, userCode });
+      const nextCards = applyReviewAnswerToQueue(cards, result.card);
+      setCards(nextCards);
+      setUserCode(getCurrentReviewCard(nextCards)?.userCode ?? "");
+      setShowCompare(false);
+      setError(null);
+    } catch (unknownError) {
+      setError(normalizeApiError(unknownError).message);
+    } finally {
+      setIsAnswering(false);
+    }
   };
 
   return (
@@ -80,6 +90,7 @@ export function ReviewRoute() {
       {!isLoading && !error ? (
         <ReviewScreen
           cards={cards}
+          isAnswering={isAnswering}
           onAnswer={answer}
           onCompare={revealCompare}
           setUserCode={setUserCode}

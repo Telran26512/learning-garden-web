@@ -1,10 +1,12 @@
 "use client";
 
+import { getCurrentReviewCard } from "@/features/review/review-queue";
 import type { ReviewAnswerRating, ReviewCard } from "@/lib/api";
 import { cn } from "@/lib/utils/cn";
 
 type ReviewScreenProps = {
   cards: ReviewCard[];
+  isAnswering?: boolean;
   userCode: string;
   setUserCode: (value: string) => void;
   showCompare: boolean;
@@ -14,13 +16,17 @@ type ReviewScreenProps = {
 
 export function ReviewScreen({
   cards,
+  isAnswering = false,
   userCode,
   setUserCode,
   showCompare,
   onAnswer,
   onCompare,
 }: ReviewScreenProps) {
-  const currentCard = cards[0];
+  const currentCard = getCurrentReviewCard(cards);
+  const dueCards = cards.filter((card) => card.status === "due");
+  const completedCount = cards.length - dueCards.length;
+  const progress = cards.length > 0 ? Math.max(8, (completedCount / cards.length) * 100) : 0;
 
   if (!currentCard) {
     return (
@@ -53,12 +59,14 @@ export function ReviewScreen({
           <div className="border-b hair pb-5">
             <div className="mb-2 flex items-center justify-between text-[12px] text-slate-500">
               <span>
-                今日纠错队列 · 第 <b className="text-slate-700">1</b> / 6 题
+                今日纠错队列 · 第{" "}
+                <b className="text-slate-700">{Math.min(completedCount + 1, cards.length)}</b> /{" "}
+                {cards.length} 题
               </span>
               <span>代码实现题 · 来自「线性回归」</span>
             </div>
             <div className="h-1.5 overflow-hidden rounded-full bg-slate-100">
-              <div className="h-full rounded-full bg-garden-600" style={{ width: "16%" }} />
+              <div className="h-full rounded-full bg-garden-600" style={{ width: `${progress}%` }} />
             </div>
           </div>
 
@@ -122,7 +130,12 @@ export function ReviewScreen({
             </div>
 
             {showCompare ? (
-              <CompareResult card={currentCard} onAnswer={onAnswer} userCode={userCode} />
+              <CompareResult
+                card={currentCard}
+                isAnswering={isAnswering}
+                onAnswer={onAnswer}
+                userCode={userCode}
+              />
             ) : null}
           </div>
 
@@ -131,7 +144,7 @@ export function ReviewScreen({
               <h3 className="text-[15px] font-semibold">今日纠错队列</h3>
               <span className="sect-label">按错因优先级排序</span>
             </div>
-            <QueueList cards={cards} />
+            <QueueList cards={cards} currentId={currentCard.id} />
           </div>
         </div>
         <ReviewSidebar cards={cards} />
@@ -142,10 +155,12 @@ export function ReviewScreen({
 
 function CompareResult({
   card,
+  isAnswering,
   onAnswer,
   userCode,
 }: {
   card: ReviewCard;
+  isAnswering: boolean;
   onAnswer: (rating: ReviewAnswerRating) => void;
   userCode: string;
 }) {
@@ -177,7 +192,11 @@ function CompareResult({
           ["能写对", "7 天后回放", "easy", "hover:bg-garden-50 hover:border-garden-200"],
         ].map(([title, sub, rating, hover]) => (
           <button
-            className={cn("focus-ring rounded-md border hair py-3 transition", hover)}
+            className={cn(
+              "focus-ring rounded-md border hair py-3 transition disabled:cursor-not-allowed disabled:opacity-50",
+              hover,
+            )}
+            disabled={isAnswering}
             key={title}
             onClick={() => onAnswer(rating as ReviewAnswerRating)}
             type="button"
@@ -191,7 +210,7 @@ function CompareResult({
   );
 }
 
-function QueueList({ cards }: { cards: ReviewCard[] }) {
+function QueueList({ cards, currentId }: { cards: ReviewCard[]; currentId: string }) {
   return (
     <div>
       {cards.map((card, index) => (
@@ -200,11 +219,16 @@ function QueueList({ cards }: { cards: ReviewCard[] }) {
           <span className="rounded bg-blue-50 px-1.5 py-0.5 text-[10px] text-blue-600">
             代码纠错
           </span>
-          <span className={cn("flex-1", index === 0 ? "font-medium" : "text-slate-600")}>
+          <span className={cn("flex-1", card.id === currentId ? "font-medium" : "text-slate-600")}>
             {card.errorSummary}
           </span>
-          <span className={cn("text-[11px]", index === 0 ? "font-medium text-garden-600" : "text-slate-400")}>
-            {index === 0 ? "当前" : card.status}
+          <span
+            className={cn(
+              "text-[11px]",
+              card.id === currentId ? "font-medium text-garden-600" : "text-slate-400",
+            )}
+          >
+            {card.id === currentId ? "当前" : card.status}
           </span>
         </div>
       ))}
@@ -214,7 +238,7 @@ function QueueList({ cards }: { cards: ReviewCard[] }) {
 
 function ReviewSidebar({ cards }: { cards: ReviewCard[] }) {
   const dueCount = cards.filter((card) => card.status === "due").length;
-  const currentCard = cards[0];
+  const currentCard = getCurrentReviewCard(cards);
 
   return (
     <aside className="lg:col-span-4 lg:border-l lg:pl-8 hair">
