@@ -538,6 +538,6 @@ Expected: local `main` and `origin/main` point to the same commit.
 ## Self-Review
 
 - Spec coverage: OpenAPI, TS contracts, mock transport, domain API modules, UI migration, error handling, tests, and backend handoff are covered.
-- Incomplete-section scan: no TODO/TBD language is used.
+- Incomplete-section scan: no unfinished-work markers are used.
 - Type consistency: DTO names match the spec and are reused consistently across modules and tests.
 - Scope check: M0/M1 only; no comments/follows/notifications/full moderation.
