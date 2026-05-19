@@ -1,2 +1,11 @@
+export { adminApi } from "./modules/admin";
 export { ApiError, createApiClient } from "./client";
 export type { ApiClient, ApiFetcher, ApiRequestInit, JsonBody } from "./client";
+export type * from "./contracts";
+export { ApiDomainError, createApiDomainError, normalizeApiError } from "./errors";
+export { contentApi } from "./modules/content";
+export { identityApi } from "./modules/identity";
+export { learningApi } from "./modules/learning";
+export { runtimeApi } from "./modules/runtime";
+export { getApiTransport, setApiTransportForTests } from "./transport";
+export type { ApiMethod, ApiTransport } from "./transport";
