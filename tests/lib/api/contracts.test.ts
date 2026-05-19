@@ -18,9 +18,11 @@ describe("API contracts and fixtures", () => {
 
   it("provides concept fixtures shaped like the content contract", () => {
     const concept: Concept = mockConcepts[0]!;
+    const draftConcept: Concept = mockConcepts[1]!;
 
     expect(concept.id).toBe("concept_linear_regression");
-    expect(concept.visibility).toBe("private");
+    expect(concept.visibility).toBe("public");
+    expect(draftConcept.visibility).toBe("private");
     expect(concept.sections.some((section) => section.kind === "math")).toBe(true);
     expect(concept.sections.some((section) => section.kind === "code")).toBe(true);
     expect(concept.sections.some((section) => section.kind === "paper")).toBe(true);
