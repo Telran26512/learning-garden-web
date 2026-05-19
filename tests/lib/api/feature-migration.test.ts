@@ -20,6 +20,7 @@ describe("feature API migration", () => {
     for (const file of files) {
       const content = readFileSync(join(process.cwd(), file), "utf8");
       expect(content, file).not.toContain("@/lib/demo");
+      expect(content, file).not.toContain("@/lib/api/mock/fixtures");
       expect(content, file).not.toContain("synapse-data");
     }
   });
@@ -28,6 +29,7 @@ describe("feature API migration", () => {
     for (const file of walkSourceFiles(["app", "components", "features"])) {
       const content = readFileSync(join(process.cwd(), file), "utf8");
       expect(content, file).not.toContain("@/lib/demo");
+      expect(content, file).not.toContain("@/lib/api/mock/fixtures");
       expect(content, file).not.toContain("synapse-data");
     }
   });

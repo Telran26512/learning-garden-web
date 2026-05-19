@@ -19,15 +19,14 @@ type TopNavProps = {
 export function TopNav({ active, goTo }: TopNavProps) {
   return (
     <nav className="sticky top-0 z-20 border-b hair bg-[rgba(250,247,239,0.92)] backdrop-blur">
-      <div className="mx-auto flex h-[52px] max-w-[1200px] items-center gap-8 px-6">
+      <div className="mx-auto flex min-h-[52px] max-w-[1200px] items-center gap-6 px-6">
         <NavLogo goTo={goTo} />
-        <div className="flex h-[52px] items-center gap-7 text-[13px]">
+        <div className="flex h-[52px] min-w-0 flex-1 items-center gap-5 overflow-x-auto text-[13px]">
           {navItems.map((item) => (
             <NavItem active={active === item.screen} goTo={goTo} item={item} key={item.screen} />
           ))}
         </div>
-        <div className="flex-1" />
-        <div className="inp hidden items-center gap-1.5 bg-white/45 px-2.5 py-1.5 text-[12px] text-[color:var(--muted)] md:flex">
+        <div className="inp hidden items-center gap-1.5 bg-white/45 px-2.5 py-1.5 text-[12px] text-[color:var(--muted)] xl:flex">
           <span>⌕</span>
           <span>搜索概念、笔记、论文…</span>
           <span className="ml-5 rounded border hair bg-[var(--paper)] px-1 text-[11px]">⌘K</span>
