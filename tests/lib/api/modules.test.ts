@@ -4,6 +4,7 @@ import {
   contentApi,
   identityApi,
   learningApi,
+  moderationApi,
   portfolioApi,
   relationApi,
   runtimeApi,
@@ -43,5 +44,8 @@ describe("domain API modules", () => {
     await expect(adminApi.getOverview()).resolves.toMatchObject({
       moderationPendingCount: expect.any(Number),
     });
+    await expect(moderationApi.getReports()).resolves.toEqual(
+      expect.arrayContaining([expect.objectContaining({ status: "open" })]),
+    );
   });
 });

@@ -6,6 +6,7 @@ export { ApiDomainError, createApiDomainError, normalizeApiError } from "./error
 export { contentApi } from "./modules/content";
 export { identityApi } from "./modules/identity";
 export { learningApi } from "./modules/learning";
+export { moderationApi } from "./modules/moderation";
 export { portfolioApi } from "./modules/portfolio";
 export { relationApi } from "./modules/relation";
 export { runtimeApi } from "./modules/runtime";

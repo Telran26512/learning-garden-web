@@ -1,4 +1,5 @@
 import type {
+  AdminAction,
   AnswerReviewCardInput,
   Comment,
   CommentTargetType,
@@ -8,16 +9,22 @@ import type {
   CreateDiscussionInput,
   Discussion,
   ListPublicContentQuery,
+  ModerateContentInput,
+  ModerationTarget,
   NotificationItem,
   PublicContentDetail,
   PublicContentItem,
   PublicProfile,
+  ResolveReportInput,
+  RestrictUserInput,
   UpdateConceptInput,
+  UpdateRegistrationInput,
   UpdateRoadmapTaskInput,
   User,
 } from "@/lib/api/contracts";
 import {
   mockActivityFeed,
+  mockAdminActions,
   mockAdminOverview,
   mockBacklinks,
   mockComments,
@@ -25,11 +32,13 @@ import {
   mockCurrentUser,
   mockDiscussions,
   mockGraph,
+  mockModerationReports,
   mockModerationQueue,
   mockNotifications,
   mockPortfolios,
   mockPublicContent,
   mockPublicProfiles,
+  mockRegistrationSettings,
   mockReviewCards,
   mockRoadmapTasks,
 } from "@/lib/api/mock/fixtures";
@@ -40,15 +49,18 @@ export type MockApiRepository = ReturnType<typeof createMockApiRepository>;
 export function createMockApiRepository() {
   let currentUser: User | null = { ...mockCurrentUser };
   let activityFeed = clone(mockActivityFeed);
+  let adminActions = clone(mockAdminActions);
   let comments = clone(mockComments);
   let concepts = clone(mockConcepts);
   let discussions = clone(mockDiscussions);
   const graph = cloneOne(mockGraph);
+  let moderationReports = clone(mockModerationReports);
   let notifications = clone(mockNotifications);
   const backlinks = clone(mockBacklinks);
   const portfolios = clone(mockPortfolios);
   const publicContent = clone(mockPublicContent);
   let publicProfiles = clone(mockPublicProfiles);
+  let registrationSettings = cloneOne(mockRegistrationSettings);
   const roadmapTasks = clone(mockRoadmapTasks);
   const reviewCards = clone(mockReviewCards);
 
@@ -160,6 +172,10 @@ export function createMockApiRepository() {
 
       return cloneOne(requirePublicProfile(publicProfiles, userId));
     },
+    getAdminActions() {
+      requireAdmin(currentUser);
+      return clone(adminActions);
+    },
     getAdminOverview() {
       requireAdmin(currentUser);
       return { ...mockAdminOverview };
@@ -224,6 +240,14 @@ export function createMockApiRepository() {
     getModerationQueue() {
       requireAdmin(currentUser);
       return clone(mockModerationQueue);
+    },
+    getRegistration() {
+      requireAdmin(currentUser);
+      return cloneOne(registrationSettings);
+    },
+    getReports() {
+      requireAdmin(currentUser);
+      return clone(moderationReports);
     },
     getComments(targetId: string, targetType: CommentTargetType) {
       return clone(
@@ -310,6 +334,52 @@ export function createMockApiRepository() {
       notification.readAt = new Date().toISOString();
       return cloneOne(notification);
     },
+    moderateComment(id: string, input: ModerateContentInput) {
+      const admin = requireAdmin(currentUser);
+      validateModerationReason(input.reason);
+      const comment = comments.find((item) => item.id === id);
+
+      if (!comment) {
+        throw createApiDomainError(404, "not_found", "Comment not found");
+      }
+
+      const action = createAdminAction(
+        admin.id,
+        `moderate_comment_${input.action}`,
+        {
+          id: comment.id,
+          label: comment.body,
+          type: "comment",
+        },
+        input.reason,
+        adminActions.length,
+      );
+      adminActions = [action, ...adminActions];
+      return cloneOne(action);
+    },
+    moderateContent(id: string, input: ModerateContentInput) {
+      const admin = requireAdmin(currentUser);
+      validateModerationReason(input.reason);
+      const content = publicContent.find((item) => item.id === id);
+
+      if (!content) {
+        throw createApiDomainError(404, "not_found", "Content not found");
+      }
+
+      const action = createAdminAction(
+        admin.id,
+        `moderate_content_${input.action}`,
+        {
+          id: content.id,
+          label: content.title,
+          type: "content",
+        },
+        input.reason,
+        adminActions.length,
+      );
+      adminActions = [action, ...adminActions];
+      return cloneOne(action);
+    },
     replyToDiscussion(id: string, input: CreateCommentInput) {
       const user = requireUser(currentUser);
       const discussion = discussions.find((item) => item.id === id);
@@ -339,6 +409,51 @@ export function createMockApiRepository() {
       discussion.updatedAt = now;
       return cloneOne(reply);
     },
+    resolveReport(id: string, input: ResolveReportInput) {
+      const admin = requireAdmin(currentUser);
+      const report = moderationReports.find((item) => item.id === id);
+
+      if (!report) {
+        throw createApiDomainError(404, "not_found", "Report not found");
+      }
+
+      validateModerationReason(input.reason);
+      report.status = input.status;
+      adminActions = [
+        createAdminAction(
+          admin.id,
+          "resolve_report",
+          report.target,
+          input.reason,
+          adminActions.length,
+        ),
+        ...adminActions,
+      ];
+      return cloneOne(report);
+    },
+    restrictUser(id: string, input: RestrictUserInput) {
+      const admin = requireAdmin(currentUser);
+      validateModerationReason(input.reason);
+      const profile = publicProfiles.find((item) => item.id === id);
+
+      if (!profile) {
+        throw createApiDomainError(404, "not_found", "Public profile not found");
+      }
+
+      const action = createAdminAction(
+        admin.id,
+        input.restricted ? "restrict_user" : "restore_user",
+        {
+          id: profile.id,
+          label: profile.displayName,
+          type: "user",
+        },
+        input.reason,
+        adminActions.length,
+      );
+      adminActions = [action, ...adminActions];
+      return cloneOne(action);
+    },
     runPython(code: string) {
       if (code.trim().length === 0) {
         throw createApiDomainError(422, "validation_error", "Python code cannot be empty");
@@ -367,6 +482,15 @@ export function createMockApiRepository() {
       };
       concepts[index] = next;
       return cloneOne(next);
+    },
+    updateRegistration(input: UpdateRegistrationInput) {
+      requireAdmin(currentUser);
+      registrationSettings = {
+        inviteOnly: input.inviteOnly,
+        openRegistration: input.openRegistration,
+        updatedAt: new Date().toISOString(),
+      };
+      return cloneOne(registrationSettings);
     },
     updateRoadmapTask(id: string, input: UpdateRoadmapTaskInput) {
       requireUser(currentUser);
@@ -452,6 +576,29 @@ function toPublicContentDetail(concept: Concept): PublicContentDetail {
     updatedAt: concept.updatedAt,
     visibility: "public",
   };
+}
+
+function createAdminAction(
+  actorId: string,
+  action: string,
+  target: ModerationTarget,
+  reason: string,
+  existingCount: number,
+): AdminAction {
+  return {
+    action,
+    actorId,
+    createdAt: new Date().toISOString(),
+    id: `admin_action_${existingCount + 1}`,
+    reason,
+    target,
+  };
+}
+
+function validateModerationReason(reason: string) {
+  if (reason.trim().length === 0) {
+    throw createApiDomainError(422, "validation_error", "Moderation reason is required");
+  }
 }
 
 function getNextIntervalDays(current: number, rating: string) {

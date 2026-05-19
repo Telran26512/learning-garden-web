@@ -1,5 +1,6 @@
 import type {
   ActivityFeedItem,
+  AdminAction,
   AdminOverview,
   Backlink,
   Comment,
@@ -7,10 +8,12 @@ import type {
   Discussion,
   KnowledgeGraph,
   ModerationQueueItem,
+  ModerationReport,
   NotificationItem,
   Portfolio,
   PublicContentItem,
   PublicProfile,
+  RegistrationSettings,
   ReviewCard,
   RoadmapTask,
   User,
@@ -410,5 +413,53 @@ export const mockModerationQueue: ModerationQueueItem[] = [
     status: "已通过",
     title: "线性回归推导公式排版",
     type: "内容修订",
+  },
+];
+
+export const mockModerationReports: ModerationReport[] = [
+  {
+    createdAt: "2026-05-19T03:00:00.000Z",
+    id: "report_missing_source",
+    reason: "公式截图缺少来源, 需要补充教材或论文出处。",
+    reporter: mockPublicAuthors.ada,
+    status: "open",
+    target: {
+      id: "concept_linear_regression",
+      label: "线性回归: 最小二乘推导与实现",
+      type: "content",
+    },
+  },
+  {
+    createdAt: "2026-05-18T22:00:00.000Z",
+    id: "report_comment_tone",
+    reason: "评论语气不适合公开讨论区。",
+    reporter: mockPublicAuthors.raymond,
+    status: "open",
+    target: {
+      id: "comment_bias_column",
+      label: "这里用偏置列解释截距非常清楚。",
+      type: "comment",
+    },
+  },
+];
+
+export const mockRegistrationSettings: RegistrationSettings = {
+  inviteOnly: true,
+  openRegistration: false,
+  updatedAt: "2026-05-19T00:00:00.000Z",
+};
+
+export const mockAdminActions: AdminAction[] = [
+  {
+    action: "review_content",
+    actorId: "user_raymond",
+    createdAt: "2026-05-18T23:30:00.000Z",
+    id: "admin_action_initial_review",
+    reason: "公开内容进入人工复核。",
+    target: {
+      id: "content_cross_entropy_public",
+      label: "Softmax + 交叉熵梯度的稳定实现",
+      type: "content",
+    },
   },
 ];

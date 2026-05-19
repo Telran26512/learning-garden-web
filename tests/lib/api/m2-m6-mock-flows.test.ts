@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   contentApi,
   learningApi,
+  moderationApi,
   portfolioApi,
   relationApi,
   setApiTransportForTests,
@@ -167,5 +168,64 @@ describe("M5 relation and portfolio mock flows", () => {
     );
     expect(portfolio.owner.id).toBe("user_raymond");
     expect(portfolio.evidence.length).toBeGreaterThan(0);
+  });
+});
+
+describe("M6 moderation mock flows", () => {
+  it("resolves a report and appends an admin action", async () => {
+    useFreshMockTransport();
+
+    const [report] = await moderationApi.getReports();
+    const resolved = await moderationApi.resolveReport(report!.id, {
+      reason: "已要求作者补充来源。",
+      status: "resolved",
+    });
+    const actions = await moderationApi.getAdminActions();
+
+    expect(resolved.status).toBe("resolved");
+    expect(actions).toEqual(
+      expect.arrayContaining([expect.objectContaining({ action: "resolve_report" })]),
+    );
+  });
+
+  it("toggles registration settings", async () => {
+    useFreshMockTransport();
+
+    const before = await moderationApi.getRegistration();
+    const after = await moderationApi.updateRegistration({
+      inviteOnly: false,
+      openRegistration: true,
+    });
+
+    expect(before.openRegistration).toBe(false);
+    expect(after.openRegistration).toBe(true);
+    expect(after.inviteOnly).toBe(false);
+  });
+
+  it("logs moderation actions for content, comments, and users", async () => {
+    useFreshMockTransport();
+
+    const contentAction = await moderationApi.moderateContent("concept_linear_regression", {
+      action: "review",
+      reason: "公开题解进入二次复核。",
+    });
+    const commentAction = await moderationApi.moderateComment("comment_bias_column", {
+      action: "hide",
+      reason: "评论先隐藏等待复核。",
+    });
+    const userAction = await moderationApi.restrictUser("user_ada", {
+      reason: "测试限制公开互动。",
+      restricted: true,
+    });
+    const actions = await moderationApi.getAdminActions();
+
+    expect(contentAction.action).toBe("moderate_content_review");
+    expect(commentAction.action).toBe("moderate_comment_hide");
+    expect(userAction.action).toBe("restrict_user");
+    expect(actions.slice(0, 3).map((item) => item.id)).toEqual([
+      userAction.id,
+      commentAction.id,
+      contentAction.id,
+    ]);
   });
 });

@@ -163,6 +163,48 @@ function handleRequest(
     return repository.getModerationQueue();
   }
 
+  if (method === "GET" && pathname === "/admin/reports") {
+    return repository.getReports();
+  }
+
+  const reportResolveMatch = pathname?.match(/^\/admin\/reports\/([^/]+)\/resolve$/);
+  if (reportResolveMatch && method === "POST") {
+    return repository.resolveReport(decodeURIComponent(reportResolveMatch[1]!), body as never);
+  }
+
+  const adminContentModerateMatch = pathname?.match(/^\/admin\/content\/([^/]+)\/moderate$/);
+  if (adminContentModerateMatch && method === "POST") {
+    return repository.moderateContent(
+      decodeURIComponent(adminContentModerateMatch[1]!),
+      body as never,
+    );
+  }
+
+  const adminCommentModerateMatch = pathname?.match(/^\/admin\/comments\/([^/]+)\/moderate$/);
+  if (adminCommentModerateMatch && method === "POST") {
+    return repository.moderateComment(
+      decodeURIComponent(adminCommentModerateMatch[1]!),
+      body as never,
+    );
+  }
+
+  const adminUserRestrictMatch = pathname?.match(/^\/admin\/users\/([^/]+)\/restrict$/);
+  if (adminUserRestrictMatch && method === "POST") {
+    return repository.restrictUser(decodeURIComponent(adminUserRestrictMatch[1]!), body as never);
+  }
+
+  if (method === "GET" && pathname === "/admin/registration") {
+    return repository.getRegistration();
+  }
+
+  if (method === "PATCH" && pathname === "/admin/registration") {
+    return repository.updateRegistration(body as never);
+  }
+
+  if (method === "GET" && pathname === "/admin/actions") {
+    return repository.getAdminActions();
+  }
+
   throw new Error(`Unhandled mock API request: ${method} ${path}`);
 }
 
