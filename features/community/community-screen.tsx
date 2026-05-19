@@ -15,18 +15,11 @@ export function CommunityScreen({ content }: { content: PublicContentItem[] }) {
         这里展示能复用的题解、推导、错因复盘和可运行实现。
       </p>
       <div className="flex items-center gap-5 border-b hair text-[13px]">
-        <button
-          className="-mb-px border-b-2 border-garden-600 pb-2.5 font-semibold text-garden-700"
-          type="button"
-        >
-          题解精选
-        </button>
-        <button className="pb-2.5 text-slate-500" type="button">
-          关注训练者
-        </button>
-        <button className="pb-2.5 text-slate-500" type="button">
-          最新提交
-        </button>
+        <span className="-mb-px border-b-2 border-garden-600 pb-2.5 font-semibold text-garden-700">
+          公开内容
+        </span>
+        <span className="pb-2.5 text-slate-500">概念 / 论文 / 实验</span>
+        <span className="pb-2.5 text-slate-500">后端搜索接入前为静态 mock feed</span>
       </div>
       <div className="grid grid-cols-1 gap-x-8 lg:grid-cols-[minmax(0,1fr)_330px]">
         <div className="min-w-0">
@@ -35,12 +28,9 @@ export function CommunityScreen({ content }: { content: PublicContentItem[] }) {
               <span>⌕</span>
               <span>搜索题解、实现、错因、公式…</span>
             </div>
-            <button
-              className="rounded-md border hair px-3.5 py-2 text-[13px] text-slate-600"
-              type="button"
-            >
-              ⚲ 筛选
-            </button>
+            <span className="rounded-md border hair px-3.5 py-2 text-[13px] text-slate-500">
+              ⚲ 筛选待后端接入
+            </span>
           </div>
           {content.length === 0 ? (
             <div className="rounded-[18px] border hair bg-white/55 p-6">

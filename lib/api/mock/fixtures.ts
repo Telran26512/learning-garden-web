@@ -112,7 +112,7 @@ export const mockPublicContent: PublicContentItem[] = [
     contentType: "concept",
     createdAt: "2026-05-19T00:00:00.000Z",
     excerpt: "正规方程的推导与实现, 从矩阵维度到 NumPy 代码逐步拆解。",
-    id: "content_linear_regression_public",
+    id: "concept_linear_regression",
     ownerId: "user_raymond",
     slug: "linear-regression-ols",
     tags: ["线性回归", "最小二乘", "统计学习"],
