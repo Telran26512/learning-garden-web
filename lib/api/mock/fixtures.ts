@@ -128,8 +128,11 @@ export const mockReviewCards: ReviewCard[] = [
   {
     conceptId: "concept_linear_regression",
     dueAt: "2026-05-19T00:00:00.000Z",
+    ease: 2.5,
     errorSummary: "忘记给输入拼接偏置列, 模型没有学到截距项。",
     id: "review_bias_column",
+    intervalDays: 1,
+    lastReviewedAt: null,
     prompt: "用 NumPy 实现带偏置项的正规方程解 linear_regression(X, y)。",
     referenceCode: `import numpy as np
 

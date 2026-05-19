@@ -639,6 +639,12 @@ paths:
       operationId: resolveModerationReport
       parameters:
         - $ref: "#/components/parameters/IdPath"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ResolveReportInput"
       responses:
         "200":
           description: Resolved moderation report
@@ -655,6 +661,12 @@ paths:
       operationId: moderateContent
       parameters:
         - $ref: "#/components/parameters/IdPath"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ModerateContentInput"
       responses:
         "200":
           description: Moderation action
@@ -669,6 +681,12 @@ paths:
       operationId: moderateComment
       parameters:
         - $ref: "#/components/parameters/IdPath"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ModerateContentInput"
       responses:
         "200":
           description: Moderation action
@@ -683,6 +701,12 @@ paths:
       operationId: restrictUser
       parameters:
         - $ref: "#/components/parameters/IdPath"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RestrictUserInput"
       responses:
         "200":
           description: Restriction action
@@ -1140,6 +1164,32 @@ components:
         createdAt:
           type: string
           format: date-time
+    ResolveReportInput:
+      type: object
+      required: [reason, status]
+      properties:
+        reason:
+          type: string
+        status:
+          type: string
+          enum: [dismissed, escalated, resolved]
+    ModerateContentInput:
+      type: object
+      required: [action, reason]
+      properties:
+        action:
+          type: string
+          enum: [hide, restore, review]
+        reason:
+          type: string
+    RestrictUserInput:
+      type: object
+      required: [reason, restricted]
+      properties:
+        reason:
+          type: string
+        restricted:
+          type: boolean
     RegistrationSettings:
       type: object
       required: [inviteOnly, openRegistration, updatedAt]
