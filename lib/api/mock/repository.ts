@@ -2,8 +2,6 @@ import type {
   AnswerReviewCardInput,
   Concept,
   CreateConceptInput,
-  ReviewCard,
-  RoadmapTask,
   UpdateConceptInput,
   UpdateRoadmapTaskInput,
   User,
@@ -23,8 +21,8 @@ export type MockApiRepository = ReturnType<typeof createMockApiRepository>;
 export function createMockApiRepository() {
   let currentUser: User | null = { ...mockCurrentUser };
   let concepts = clone(mockConcepts);
-  let roadmapTasks = clone(mockRoadmapTasks);
-  let reviewCards = clone(mockReviewCards);
+  const roadmapTasks = clone(mockRoadmapTasks);
+  const reviewCards = clone(mockReviewCards);
 
   return {
     answerReviewCard(id: string, input: AnswerReviewCardInput) {

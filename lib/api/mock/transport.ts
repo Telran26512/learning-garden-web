@@ -17,27 +17,29 @@ function handleRequest(
   path: string,
   body: unknown,
 ) {
-  if (method === "GET" && path === "/auth/me") {
+  const [pathname] = path.split("?");
+
+  if (method === "GET" && pathname === "/auth/me") {
     return repository.getCurrentUser();
   }
 
-  if (method === "POST" && path === "/auth/login") {
+  if (method === "POST" && pathname === "/auth/login") {
     return repository.login();
   }
 
-  if (method === "POST" && path === "/auth/logout") {
+  if (method === "POST" && pathname === "/auth/logout") {
     return repository.logout();
   }
 
-  if (method === "GET" && path === "/concepts") {
+  if (method === "GET" && pathname === "/concepts") {
     return repository.listConcepts();
   }
 
-  if (method === "POST" && path === "/concepts") {
+  if (method === "POST" && pathname === "/concepts") {
     return repository.createConcept(body as never);
   }
 
-  const conceptMatch = path.match(/^\/concepts\/([^/]+)$/);
+  const conceptMatch = pathname?.match(/^\/concepts\/([^/]+)$/);
   if (conceptMatch && method === "GET") {
     return repository.getConcept(decodeURIComponent(conceptMatch[1]!));
   }
@@ -46,34 +48,34 @@ function handleRequest(
     return repository.updateConcept(decodeURIComponent(conceptMatch[1]!), body as never);
   }
 
-  if (method === "GET" && path === "/learning/roadmap") {
+  if (method === "GET" && pathname === "/learning/roadmap") {
     return repository.getRoadmap();
   }
 
-  const taskMatch = path.match(/^\/learning\/tasks\/([^/]+)$/);
+  const taskMatch = pathname?.match(/^\/learning\/tasks\/([^/]+)$/);
   if (taskMatch && method === "PATCH") {
     return repository.updateRoadmapTask(decodeURIComponent(taskMatch[1]!), body as never);
   }
 
-  if (method === "GET" && path === "/learning/review-queue") {
+  if (method === "GET" && pathname === "/learning/review-queue") {
     return repository.getReviewQueue();
   }
 
-  const reviewMatch = path.match(/^\/learning\/review-cards\/([^/]+)\/answer$/);
+  const reviewMatch = pathname?.match(/^\/learning\/review-cards\/([^/]+)\/answer$/);
   if (reviewMatch && method === "POST") {
     return repository.answerReviewCard(decodeURIComponent(reviewMatch[1]!), body as never);
   }
 
-  if (method === "POST" && path === "/runtime/python-runs") {
+  if (method === "POST" && pathname === "/runtime/python-runs") {
     const request = body as { code?: string };
     return repository.runPython(request.code ?? "");
   }
 
-  if (method === "GET" && path === "/admin/overview") {
+  if (method === "GET" && pathname === "/admin/overview") {
     return repository.getAdminOverview();
   }
 
-  if (method === "GET" && path === "/admin/moderation-queue") {
+  if (method === "GET" && pathname === "/admin/moderation-queue") {
     return repository.getModerationQueue();
   }
 

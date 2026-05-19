@@ -2,11 +2,21 @@
 
 import { useMemo } from "react";
 import { ActionButton } from "@/components/ui/action-button";
-import { recentTopics } from "@/lib/demo/synapse-data";
-import type { GoToScreen } from "@/lib/demo/synapse-types";
+import type { Concept, RoadmapTask } from "@/lib/api";
 import { cn } from "@/lib/utils/cn";
 
-export function WorkspaceScreen({ goTo }: { goTo: GoToScreen }) {
+type WorkspaceScreenProps = {
+  concepts: Concept[];
+  goTo: GoToScreen;
+  roadmapTasks: RoadmapTask[];
+};
+
+type GoToScreen = (screen: "community" | "concept" | "review" | "studio" | "workspace") => void;
+
+export function WorkspaceScreen({ concepts, goTo, roadmapTasks }: WorkspaceScreenProps) {
+  const primaryConcept = concepts[0];
+  const doneTasks = roadmapTasks.filter((task) => task.status === "done").length;
+
   return (
     <section className="flex min-h-[calc(100vh-52px)] gap-7 py-6">
       <aside className="hidden w-[184px] shrink-0 border-r hair pr-5 md:block">
@@ -29,9 +39,10 @@ export function WorkspaceScreen({ goTo }: { goTo: GoToScreen }) {
         <div className="mt-4 border-t hair pt-4">
           <div className="sect-label mb-1">今日节奏</div>
           <div className="num text-[22px] font-bold">
-            1<span className="text-[12px] font-medium">/3</span>
+            {doneTasks}
+            <span className="text-[12px] font-medium">/{roadmapTasks.length}</span>
             <span className="ml-1.5 text-[11px] font-medium text-garden-600">
-              已完成一个训练块
+              已完成训练块
             </span>
           </div>
           <div className="mt-3 space-y-2 text-[12px]">
@@ -56,7 +67,7 @@ export function WorkspaceScreen({ goTo }: { goTo: GoToScreen }) {
             <h1 className="mt-1 text-[24px] font-bold">先推导,再实现,最后拿反馈</h1>
           </div>
           <div className="flex items-center divide-x divide-slate-200 text-[12px]">
-            <Metric label="主题" value="线性回归" />
+            <Metric label="主题" value={primaryConcept?.title ?? "待创建"} />
             <Metric label="实现题通过" value="7/10" padded />
             <Metric label="待纠错" value="3" padded side="right" />
           </div>
@@ -70,11 +81,9 @@ export function WorkspaceScreen({ goTo }: { goTo: GoToScreen }) {
               </span>
               <span className="text-[11px] text-slate-400">Stage 2 · 线性模型与回归</span>
             </div>
-            <h2 className="text-[22px] font-bold leading-tight">
-              实现带偏置项的最小二乘解,并解释正规方程为什么成立
-            </h2>
+            <h2 className="text-[22px] font-bold leading-tight">{primaryConcept?.summary}</h2>
             <p className="mt-2 max-w-[68ch] text-[13px] text-slate-600">
-              这一轮训练先用 3 步推导确认公式来源,然后实现{" "}
+              这一轮训练来自 mock API 的概念数据。先用 3 步推导确认公式来源,然后实现{" "}
               <code className="rounded bg-slate-100 px-1">linear_regression(X, y)</code>
               ,最后对照参考解看你是否遗漏偏置列、矩阵维度或数值稳定性。
             </p>
@@ -89,7 +98,7 @@ export function WorkspaceScreen({ goTo }: { goTo: GoToScreen }) {
           </div>
           <div className="lg:col-span-5 lg:border-l lg:pl-8 hair">
             <div className="sect-label mb-2">本轮步骤</div>
-            <StepList />
+            <StepList tasks={roadmapTasks.slice(0, 3)} />
             <div className="mt-4 border-t hair pt-4">
               <div className="text-[11px] text-slate-400">上次卡住的点</div>
               <div className="mt-1 text-[15px] font-semibold">漏掉偏置列,代码默认拟合过原点。</div>
@@ -103,7 +112,7 @@ export function WorkspaceScreen({ goTo }: { goTo: GoToScreen }) {
         </div>
 
         <Heatmap />
-        <WorkspaceLists goTo={goTo} />
+        <WorkspaceLists concepts={concepts} goTo={goTo} roadmapTasks={roadmapTasks} />
       </div>
     </section>
   );
@@ -180,26 +189,25 @@ function FormulaChecklist() {
   );
 }
 
-function StepList() {
-  const steps = [
-    ["1", "推导预热", "确认目标函数、求导结果和正规方程。", "bg-garden-600 text-white"],
-    ["2", "代码实现", "补全偏置项并输出参数向量。", "bg-amber-100 text-amber-800"],
-    ["3", "反馈复盘", "记录错误原因,安排下次回放。", "bg-slate-100 text-slate-500"],
-  ] as const;
-
+function StepList({ tasks }: { tasks: RoadmapTask[] }) {
   return (
     <div className="space-y-2.5 text-[13px]">
-      {steps.map(([step, title, description, badgeClass]) => (
-        <div className="grid grid-cols-[22px_1fr] gap-2" key={step}>
+      {tasks.map((task, index) => (
+        <div className="grid grid-cols-[22px_1fr] gap-2" key={task.id}>
           <span
-            className={cn("flex h-5 w-5 items-center justify-center rounded text-[11px]", badgeClass)}
+            className={cn(
+              "flex h-5 w-5 items-center justify-center rounded text-[11px]",
+              task.status === "done" && "bg-garden-600 text-white",
+              task.status === "current" && "bg-amber-100 text-amber-800",
+              task.status === "pending" && "bg-slate-100 text-slate-500",
+            )}
           >
-            {step}
+            {index + 1}
           </span>
           <span>
-            <b>{title}</b>
+            <b>{task.title}</b>
             <br />
-            <span className="text-[12px] text-slate-500">{description}</span>
+            <span className="text-[12px] text-slate-500">{task.description}</span>
           </span>
         </div>
       ))}
@@ -317,7 +325,15 @@ function buildHeatmap() {
   return { months: monthLabels, weeks: weekColumns, studyDays };
 }
 
-function WorkspaceLists({ goTo }: { goTo: GoToScreen }) {
+function WorkspaceLists({
+  concepts,
+  goTo,
+  roadmapTasks,
+}: {
+  concepts: Concept[];
+  goTo: GoToScreen;
+  roadmapTasks: RoadmapTask[];
+}) {
   return (
     <div className="grid grid-cols-1 gap-x-8 gap-y-6 pt-5 lg:grid-cols-12">
       <div className="lg:col-span-4">
@@ -325,20 +341,14 @@ function WorkspaceLists({ goTo }: { goTo: GoToScreen }) {
           <h2 className="text-[15px] font-semibold">本周训练路线</h2>
           <span className="sect-label">当前</span>
         </div>
-        <CheckRow done label="推导目标函数与梯度" />
-        <CheckRow done label="写出正规方程" />
-        <div className="flex items-center gap-2.5 py-[5px]">
-          <span className="flex h-[15px] w-[15px] shrink-0 items-center justify-center rounded border-2 border-garden-600">
-            <span className="h-[5px] w-[5px] rounded-[1px] bg-garden-600" />
-          </span>
-          <span className="font-medium text-garden-700">补偏置列并实现正规方程</span>
-          <span className="rounded border border-garden-600/30 px-1 text-[10px] text-garden-600">
-            当前
-          </span>
-        </div>
-        <CheckRow label="对照参考解定位差异" />
-        <CheckRow label="解释错因并记录回放" />
-        <CheckRow label="切换到梯度下降实现" />
+        {roadmapTasks.map((task) => (
+          <CheckRow
+            current={task.status === "current"}
+            done={task.status === "done"}
+            key={task.id}
+            label={task.title}
+          />
+        ))}
       </div>
 
       <div className="lg:col-span-4 lg:border-l lg:pl-8 hair">
@@ -370,18 +380,25 @@ function WorkspaceLists({ goTo }: { goTo: GoToScreen }) {
             </button>
           </span>
         </div>
-        {recentTopics.map(([title, time, passed]) => (
+        {concepts.map((concept) => (
           <button
             className="flex w-full items-center gap-2 border-b hair py-[6px] text-left transition last:border-0 hover:text-garden-700"
-            key={title}
+            key={concept.id}
             onClick={() => goTo("concept")}
             type="button"
           >
-            <span className="flex-1 truncate font-medium">{title}</span>
-            <span className={cn("text-[11px]", passed ? "text-garden-600" : "text-slate-400")}>
-              {passed ? "已过关" : "待回放"}
+            <span className="flex-1 truncate font-medium">{concept.title}</span>
+            <span
+              className={cn(
+                "text-[11px]",
+                (concept.mastery ?? 0) >= 60 ? "text-garden-600" : "text-slate-400",
+              )}
+            >
+              {(concept.mastery ?? 0) >= 60 ? "已过关" : "待回放"}
             </span>
-            <span className="w-[52px] text-right text-[11px] text-slate-400">{time}</span>
+            <span className="w-[52px] text-right text-[11px] text-slate-400">
+              {formatShortDate(concept.updatedAt)}
+            </span>
           </button>
         ))}
       </div>
@@ -389,20 +406,46 @@ function WorkspaceLists({ goTo }: { goTo: GoToScreen }) {
   );
 }
 
-function CheckRow({ label, done = false }: { label: string; done?: boolean }) {
+function CheckRow({
+  current = false,
+  label,
+  done = false,
+}: {
+  current?: boolean;
+  label: string;
+  done?: boolean;
+}) {
   return (
     <div className="flex items-center gap-2.5 py-[5px]">
       <span
         className={cn(
           "flex h-[15px] w-[15px] shrink-0 items-center justify-center rounded text-[10px]",
           done ? "bg-garden-600 text-white" : "border-2 border-slate-200",
+          current && "border-garden-600",
         )}
       >
-        {done ? "✓" : ""}
+        {done ? "✓" : current ? "•" : ""}
       </span>
-      <span className={cn(done ? "text-slate-400 line-through" : "text-slate-600")}>
+      <span
+        className={cn(
+          done && "text-slate-400 line-through",
+          current && "font-medium text-garden-700",
+          !done && !current && "text-slate-600",
+        )}
+      >
         {label}
       </span>
+      {current ? (
+        <span className="rounded border border-garden-600/30 px-1 text-[10px] text-garden-600">
+          当前
+        </span>
+      ) : null}
     </div>
+  );
+}
+
+function formatShortDate(value: string) {
+  return new Intl.DateTimeFormat("zh-CN", { month: "numeric", day: "numeric" }).format(
+    new Date(value),
   );
 }

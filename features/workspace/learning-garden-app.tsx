@@ -7,13 +7,13 @@ import { ConceptScreen } from "@/features/concepts/concept-screen";
 import { ReviewScreen } from "@/features/review/review-screen";
 import { StudioScreen } from "@/features/studio/studio-screen";
 import { WorkspaceScreen } from "@/features/workspace/workspace-screen";
-import { defaultUserCode } from "@/lib/demo/synapse-data";
+import { mockConcepts, mockReviewCards, mockRoadmapTasks } from "@/lib/api/mock/fixtures";
 import type { Screen } from "@/lib/demo/synapse-types";
 
 export function LearningGardenApp() {
   const [screen, setScreen] = useState<Screen>("workspace");
   const [showRunOutput, setShowRunOutput] = useState(false);
-  const [userCode, setUserCode] = useState(defaultUserCode);
+  const [userCode, setUserCode] = useState(mockReviewCards[0]?.userCode ?? "");
   const [showCompare, setShowCompare] = useState(false);
 
   const goTo = (nextScreen: Screen) => {
@@ -25,12 +25,21 @@ export function LearningGardenApp() {
 
   return (
     <AppShell active={screen} goTo={goTo}>
-        {screen === "workspace" ? <WorkspaceScreen goTo={goTo} /> : null}
+        {screen === "workspace" ? (
+          <WorkspaceScreen concepts={mockConcepts} goTo={goTo} roadmapTasks={mockRoadmapTasks} />
+        ) : null}
         {screen === "studio" ? <StudioScreen /> : null}
         {screen === "concept" ? (
           <ConceptScreen
+            concept={mockConcepts[0]!}
             goTo={goTo}
             onRun={() => setShowRunOutput(true)}
+            runOutput={{
+              durationMs: 38,
+              stderr: "",
+              stdout: "w = 2.98 b = 4.07\nR2 = 0.95",
+              status: "succeeded",
+            }}
             showRunOutput={showRunOutput}
           />
         ) : null}

@@ -1,29 +1,41 @@
 "use client";
 
-import { starterCode } from "@/lib/demo/synapse-data";
-import type { GoToScreen } from "@/lib/demo/synapse-types";
+import type { Concept, ConceptSection, PythonRunResponse } from "@/lib/api";
 import { cn } from "@/lib/utils/cn";
 
 type ConceptScreenProps = {
+  concept: Concept;
   goTo: GoToScreen;
+  runOutput?: PythonRunResponse;
   showRunOutput: boolean;
   onRun: () => void;
 };
 
-export function ConceptScreen({ goTo, showRunOutput, onRun }: ConceptScreenProps) {
+type GoToScreen = (screen: "community" | "concept" | "review" | "studio" | "workspace") => void;
+
+export function ConceptScreen({
+  concept,
+  goTo,
+  runOutput,
+  showRunOutput,
+  onRun,
+}: ConceptScreenProps) {
+  const codeSection = concept.sections.find((section) => section.kind === "code");
+  const mathSection = concept.sections.find((section) => section.kind === "math");
+  const paperSections = concept.sections.filter((section) => section.kind === "paper");
+
   return (
     <section className="py-6">
-      <div className="mb-1.5 text-[12px] text-slate-400">训练主题 / raymond / 线性回归</div>
+      <div className="mb-1.5 text-[12px] text-slate-400">
+        训练主题 / raymond / {concept.slug}
+      </div>
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <div className="flex flex-wrap items-baseline gap-2">
-            <h1 className="text-[28px] font-bold">线性回归实现训练</h1>
+            <h1 className="text-[28px] font-bold">{concept.title}</h1>
             <span className="text-[13px] text-slate-400">Linear Regression Drill</span>
           </div>
-          <p className="mt-2 max-w-[72ch] text-[13px] text-slate-600">
-            这里不是概念百科,而是一条完整训练链路:
-            先用最少的数学推导确认公式来源,再写出带偏置项的最小二乘实现,最后用可运行反馈检查理解是否真的落到代码里。
-          </p>
+          <p className="mt-2 max-w-[72ch] text-[13px] text-slate-600">{concept.summary}</p>
         </div>
         <div className="flex shrink-0 items-center gap-2">
           <button
@@ -55,8 +67,14 @@ export function ConceptScreen({ goTo, showRunOutput, onRun }: ConceptScreenProps
       </div>
 
       <div className="mt-6 grid grid-cols-1 gap-x-8 gap-y-6 lg:grid-cols-[330px_minmax(0,1fr)]">
-        <ConceptDerivation />
-        <ConceptImplementation showRunOutput={showRunOutput} onRun={onRun} />
+        <ConceptDerivation mathSection={mathSection} />
+        <ConceptImplementation
+          codeSection={codeSection}
+          onRun={onRun}
+          paperSections={paperSections}
+          runOutput={runOutput}
+          showRunOutput={showRunOutput}
+        />
       </div>
     </section>
   );
@@ -82,7 +100,7 @@ function ConceptMetric({
   );
 }
 
-function ConceptDerivation() {
+function ConceptDerivation({ mathSection }: { mathSection?: ConceptSection }) {
   return (
     <div className="min-w-0">
       <div className="border-b hair pb-5">
@@ -109,6 +127,12 @@ function ConceptDerivation() {
           </div>
         </div>
       </div>
+      {mathSection ? (
+        <div className="border-b hair py-5">
+          <div className="sect-label mb-2">来自 API 的推导摘要</div>
+          <p className="text-[13px] leading-6 text-slate-600">{mathSection.body}</p>
+        </div>
+      ) : null}
       <div className="pt-5">
         <div className="mb-3 flex items-center justify-between">
           <h3 className="text-[15px] font-semibold">2. 你要实现什么</h3>
@@ -169,12 +193,20 @@ function DerivationStep({
 }
 
 function ConceptImplementation({
+  codeSection,
+  paperSections,
+  runOutput,
   showRunOutput,
   onRun,
 }: {
+  codeSection?: ConceptSection;
+  paperSections: ConceptSection[];
+  runOutput?: PythonRunResponse;
   showRunOutput: boolean;
   onRun: () => void;
 }) {
+  const starterCode = codeSection?.body ?? "# 暂无代码片段";
+
   return (
     <div className="min-w-0 lg:border-l lg:pl-8 hair">
       <div>
@@ -222,7 +254,7 @@ function ConceptImplementation({
         <RegressionChart />
         {showRunOutput ? (
           <div className="mt-3 border-y hair bg-slate-50 px-4 py-3 font-mono text-[12px]">
-            w = 2.98　b = 4.07　R² = 0.95
+            {runOutput?.stdout || runOutput?.stderr || "运行完成,但没有输出。"}
           </div>
         ) : null}
       </div>
@@ -234,14 +266,13 @@ function ConceptImplementation({
           </button>
         </div>
         <div className="grid grid-cols-1 gap-x-8 gap-y-4 lg:grid-cols-2">
-          <ReferenceCard
-            title="An Introduction to Statistical Learning"
-            meta="G. James 等 · 2013 · 章节 3.1–3.3"
-          />
-          <ReferenceCard
-            title="The Elements of Statistical Learning"
-            meta="T. Hastie 等 · 2001 · 章节 3.2"
-          />
+          {paperSections.map((section) => (
+            <ReferenceCard
+              key={section.id}
+              meta={section.sourceMeta ?? "资料锚点"}
+              title={section.sourceTitle ?? section.title}
+            />
+          ))}
         </div>
       </div>
     </div>
