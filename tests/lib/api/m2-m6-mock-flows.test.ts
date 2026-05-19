@@ -30,4 +30,13 @@ describe("M2 public content mock flows", () => {
     expect(detail.slug).toBe("linear-regression-ols");
     expect(profile).toMatchObject({ id: "user_raymond", displayName: "Raymond" });
   });
+
+  it("loads detail for every public feed item", async () => {
+    useFreshMockTransport();
+
+    const feed = await contentApi.listPublicContent();
+    const details = await Promise.all(feed.map((item) => contentApi.getPublicContent(item.slug)));
+
+    expect(details.map((detail) => detail.slug).sort()).toEqual(feed.map((item) => item.slug).sort());
+  });
 });

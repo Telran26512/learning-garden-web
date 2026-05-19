@@ -90,11 +90,29 @@ export function createMockApiRepository() {
     getPublicContent(slug: string) {
       const content = concepts.find((item) => item.slug === slug && item.visibility === "public");
 
-      if (!content) {
+      if (content) {
+        return cloneOne(content);
+      }
+
+      const publicItem = publicContent.find((item) => item.slug === slug);
+
+      if (!publicItem) {
         throw createApiDomainError(404, "not_found", "Public content not found");
       }
 
-      return cloneOne(content);
+      return cloneOne({
+        createdAt: publicItem.createdAt,
+        id: publicItem.id,
+        ownerId: publicItem.ownerId,
+        sections: [],
+        slug: publicItem.slug,
+        status: "published",
+        summary: publicItem.excerpt,
+        tags: publicItem.tags,
+        title: publicItem.title,
+        updatedAt: publicItem.updatedAt,
+        visibility: "public",
+      } satisfies Concept);
     },
     getPublicProfile(id: string) {
       const profile = publicProfiles.find((item) => item.id === id);
