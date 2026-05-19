@@ -40,16 +40,21 @@ export function createMockApiRepository() {
         throw createApiDomainError(404, "not_found", "Review card not found");
       }
 
+      const now = new Date().toISOString();
+      const nextInterval = getNextIntervalDays(card.intervalDays, input.rating);
       card.status = "answered";
       card.lastRating = input.rating;
+      card.lastReviewedAt = now;
+      card.intervalDays = nextInterval;
+      card.ease = getNextEase(card.ease, input.rating);
+      card.dueAt = addDaysIso(now, nextInterval);
       if (input.userCode) {
         card.userCode = input.userCode;
       }
 
       return {
         card: { ...card },
-        nextDueAt:
-          input.rating === "again" ? "2026-05-20T00:00:00.000Z" : "2026-05-26T00:00:00.000Z",
+        nextDueAt: card.dueAt,
       };
     },
     createConcept(input: CreateConceptInput) {
@@ -273,6 +278,36 @@ function toPublicContentDetail(concept: Concept): PublicContentDetail {
     updatedAt: concept.updatedAt,
     visibility: "public",
   };
+}
+
+function getNextIntervalDays(current: number, rating: string) {
+  if (rating === "again" || rating === "hard") {
+    return 1;
+  }
+
+  if (rating === "easy") {
+    return Math.max(7, current * 2);
+  }
+
+  return Math.max(3, current + 2);
+}
+
+function getNextEase(current: number, rating: string) {
+  if (rating === "again" || rating === "hard") {
+    return Math.max(1.3, Number((current - 0.2).toFixed(2)));
+  }
+
+  if (rating === "easy") {
+    return Number((current + 0.15).toFixed(2));
+  }
+
+  return current;
+}
+
+function addDaysIso(value: string, days: number) {
+  const date = new Date(value);
+  date.setDate(date.getDate() + days);
+  return date.toISOString();
 }
 
 function clone<T>(value: T[]): T[] {

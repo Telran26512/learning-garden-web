@@ -1,6 +1,6 @@
 "use client";
 
-import type { ReviewCard } from "@/lib/api";
+import type { ReviewAnswerRating, ReviewCard } from "@/lib/api";
 import { cn } from "@/lib/utils/cn";
 
 type ReviewScreenProps = {
@@ -8,6 +8,7 @@ type ReviewScreenProps = {
   userCode: string;
   setUserCode: (value: string) => void;
   showCompare: boolean;
+  onAnswer: (rating: ReviewAnswerRating) => void;
   onCompare: () => void;
 };
 
@@ -16,6 +17,7 @@ export function ReviewScreen({
   userCode,
   setUserCode,
   showCompare,
+  onAnswer,
   onCompare,
 }: ReviewScreenProps) {
   const currentCard = cards[0];
@@ -119,7 +121,9 @@ export function ReviewScreen({
               </button>
             </div>
 
-            {showCompare ? <CompareResult card={currentCard} userCode={userCode} /> : null}
+            {showCompare ? (
+              <CompareResult card={currentCard} onAnswer={onAnswer} userCode={userCode} />
+            ) : null}
           </div>
 
           <div className="border-t hair pt-5">
@@ -136,7 +140,15 @@ export function ReviewScreen({
   );
 }
 
-function CompareResult({ card, userCode }: { card: ReviewCard; userCode: string }) {
+function CompareResult({
+  card,
+  onAnswer,
+  userCode,
+}: {
+  card: ReviewCard;
+  onAnswer: (rating: ReviewAnswerRating) => void;
+  userCode: string;
+}) {
   return (
     <div className="mt-5">
       <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
@@ -160,13 +172,14 @@ function CompareResult({ card, userCode }: { card: ReviewCard; userCode: string 
       </div>
       <div className="mt-3 grid grid-cols-1 gap-2 text-[13px] md:grid-cols-3">
         {[
-          ["还不会", "明天再做一次", "hover:bg-red-50 hover:border-red-200"],
-          ["看懂了", "3 天后再检验", "hover:bg-amber-50 hover:border-amber-200"],
-          ["能写对", "7 天后回放", "hover:bg-garden-50 hover:border-garden-200"],
-        ].map(([title, sub, hover]) => (
+          ["还不会", "明天再做一次", "again", "hover:bg-red-50 hover:border-red-200"],
+          ["看懂了", "3 天后再检验", "good", "hover:bg-amber-50 hover:border-amber-200"],
+          ["能写对", "7 天后回放", "easy", "hover:bg-garden-50 hover:border-garden-200"],
+        ].map(([title, sub, rating, hover]) => (
           <button
             className={cn("focus-ring rounded-md border hair py-3 transition", hover)}
             key={title}
+            onClick={() => onAnswer(rating as ReviewAnswerRating)}
             type="button"
           >
             {title}
@@ -201,6 +214,7 @@ function QueueList({ cards }: { cards: ReviewCard[] }) {
 
 function ReviewSidebar({ cards }: { cards: ReviewCard[] }) {
   const dueCount = cards.filter((card) => card.status === "due").length;
+  const currentCard = cards[0];
 
   return (
     <aside className="lg:col-span-4 lg:border-l lg:pl-8 hair">
@@ -233,6 +247,22 @@ function ReviewSidebar({ cards }: { cards: ReviewCard[] }) {
             </div>
           ))}
         </div>
+        {currentCard ? (
+          <div className="border-b hair py-4">
+            <h3 className="mb-3 text-[15px] font-semibold">当前卡片调度</h3>
+            <div className="grid grid-cols-2 gap-y-3 text-[12px]">
+              <ReviewSchedule label="下次到期" value={formatReviewDate(currentCard.dueAt)} />
+              <ReviewSchedule label="间隔天数" value={`${currentCard.intervalDays} 天`} />
+              <ReviewSchedule label="ease" value={currentCard.ease.toFixed(2)} />
+              <ReviewSchedule
+                label="上次复习"
+                value={
+                  currentCard.lastReviewedAt ? formatReviewDate(currentCard.lastReviewedAt) : "尚未复习"
+                }
+              />
+            </div>
+          </div>
+        ) : null}
         <h3 className="mb-3 mt-4 text-[15px] font-semibold">最近 7 天回放量</h3>
         <div className="flex h-14 items-end gap-1.5">
           {["55%", "80%", "35%", "95%", "70%", "60%", "25%"].map((height, index) => (
@@ -272,11 +302,26 @@ function ReviewSidebar({ cards }: { cards: ReviewCard[] }) {
   );
 }
 
+function ReviewSchedule({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <div className="num text-[14px] font-semibold">{value}</div>
+      <div className="mt-0.5 text-[11px] text-slate-400">{label}</div>
+    </div>
+  );
+}
+
 function ReviewStat({ value, label, green }: { value: string; label: string; green?: boolean }) {
   return (
     <div>
       <div className={cn("num text-[21px] font-bold", green && "text-garden-600")}>{value}</div>
       <div className="text-[11px] text-slate-400">{label}</div>
     </div>
+  );
+}
+
+function formatReviewDate(value: string) {
+  return new Intl.DateTimeFormat("zh-CN", { month: "numeric", day: "numeric" }).format(
+    new Date(value),
   );
 }

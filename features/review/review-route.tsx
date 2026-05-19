@@ -6,7 +6,7 @@ import { useSynapseNavigation } from "@/components/layout/use-synapse-navigation
 import { StateSurface } from "@/components/ui/state-surface";
 import { ReviewScreen } from "@/features/review/review-screen";
 import { learningApi, normalizeApiError } from "@/lib/api";
-import type { ReviewCard } from "@/lib/api";
+import type { ReviewAnswerRating, ReviewCard } from "@/lib/api";
 
 export function ReviewRoute() {
   const [cards, setCards] = useState<ReviewCard[]>([]);
@@ -40,13 +40,20 @@ export function ReviewRoute() {
     };
   }, []);
 
-  const compare = async () => {
+  const revealCompare = () => {
+    setShowCompare(true);
+  };
+
+  const answer = async (rating: ReviewAnswerRating) => {
     const card = cards[0];
     if (!card) {
       return;
     }
 
-    await learningApi.answerReviewCard(card.id, { rating: "hard", userCode });
+    const result = await learningApi.answerReviewCard(card.id, { rating, userCode });
+    setCards((current) =>
+      current.map((item) => (item.id === result.card.id ? result.card : item)),
+    );
     setShowCompare(true);
   };
 
@@ -73,7 +80,8 @@ export function ReviewRoute() {
       {!isLoading && !error ? (
         <ReviewScreen
           cards={cards}
-          onCompare={compare}
+          onAnswer={answer}
+          onCompare={revealCompare}
           setUserCode={setUserCode}
           showCompare={showCompare}
           userCode={userCode}

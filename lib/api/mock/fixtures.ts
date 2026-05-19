@@ -209,6 +209,32 @@ def linear_regression(X, y):
     w = np.linalg.inv(X.T @ X) @ X.T @ y
     return w`,
   },
+  {
+    conceptId: "concept_cross_entropy_gradient",
+    dueAt: "2026-05-19T00:00:00.000Z",
+    ease: 2.35,
+    errorSummary: "把 softmax 和 cross entropy 分开求导, 遗漏了 p - y 的化简。",
+    id: "review_cross_entropy_gradient",
+    intervalDays: 3,
+    lastReviewedAt: null,
+    prompt: "写出 softmax + cross entropy 对 logits 的梯度。",
+    referenceCode: "grad = probs - y_one_hot",
+    status: "due",
+    userCode: "grad = probs * (1 - probs)",
+  },
+  {
+    conceptId: "concept_linear_regression",
+    dueAt: "2026-05-21T00:00:00.000Z",
+    ease: 2.2,
+    errorSummary: "R2 的解释混淆了残差平方和和总平方和。",
+    id: "review_r2_interpretation",
+    intervalDays: 5,
+    lastReviewedAt: "2026-05-16T00:00:00.000Z",
+    prompt: "解释 R2 = 1 - RSS/TSS 的含义。",
+    referenceCode: "R2 measures variance explained relative to predicting the mean.",
+    status: "due",
+    userCode: "R2 is model accuracy.",
+  },
 ];
 
 export const mockAdminOverview: AdminOverview = {

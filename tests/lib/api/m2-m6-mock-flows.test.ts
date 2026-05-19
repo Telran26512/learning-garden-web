@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { contentApi, setApiTransportForTests } from "@/lib/api";
+import { contentApi, learningApi, setApiTransportForTests } from "@/lib/api";
 import { createMockApiRepository } from "@/lib/api/mock/repository";
 import { createMockTransport } from "@/lib/api/mock/transport";
 
@@ -57,5 +57,25 @@ describe("M2 public content mock flows", () => {
       code: "not_found",
       status: 404,
     });
+  });
+});
+
+describe("M3 review scheduling mock flows", () => {
+  it("answers a review card and updates scheduling fields", async () => {
+    useFreshMockTransport();
+
+    const [before] = await learningApi.getReviewQueue();
+    const result = await learningApi.answerReviewCard(before!.id, {
+      rating: "easy",
+      userCode: "def linear_regression(X, y): return X",
+    });
+    const afterQueue = await learningApi.getReviewQueue();
+    const after = afterQueue.find((card) => card.id === before!.id);
+
+    expect(result.card.status).toBe("answered");
+    expect(result.card.lastRating).toBe("easy");
+    expect(result.card.intervalDays).toBeGreaterThan(before!.intervalDays);
+    expect(result.nextDueAt).toBe(result.card.dueAt);
+    expect(after?.lastReviewedAt).not.toBeNull();
   });
 });

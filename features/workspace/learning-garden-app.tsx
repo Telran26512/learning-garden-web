@@ -54,6 +54,7 @@ export function LearningGardenApp() {
         {screen === "review" ? (
           <ReviewScreen
             cards={mockReviewCards}
+            onAnswer={() => setShowCompare(true)}
             onCompare={() => setShowCompare(true)}
             setUserCode={setUserCode}
             showCompare={showCompare}
