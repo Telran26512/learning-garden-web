@@ -1,0 +1,603 @@
+openapi: 3.1.0
+info:
+  title: Learning Garden API
+  version: 0.1.0
+  description: M0/M1 API contract for Synapse mock-first frontend development.
+servers:
+  - url: /api/v1
+tags:
+  - name: identity
+  - name: content
+  - name: learning
+  - name: runtime
+  - name: admin
+paths:
+  /auth/me:
+    get:
+      tags: [identity]
+      summary: Get the current authenticated user
+      operationId: getCurrentUser
+      responses:
+        "200":
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /auth/login:
+    post:
+      tags: [identity]
+      summary: Create a user session
+      operationId: login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+      responses:
+        "200":
+          description: Login result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LoginResponse"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+  /auth/logout:
+    post:
+      tags: [identity]
+      summary: Clear the current user session
+      operationId: logout
+      responses:
+        "204":
+          description: Logout completed
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /concepts:
+    get:
+      tags: [content]
+      summary: List concepts visible to the current user
+      operationId: listConcepts
+      parameters:
+        - name: owner
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [me]
+        - name: visibility
+          in: query
+          required: false
+          schema:
+            $ref: "#/components/schemas/Visibility"
+      responses:
+        "200":
+          description: Concept list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Concept"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    post:
+      tags: [content]
+      summary: Create a concept
+      operationId: createConcept
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateConceptRequest"
+      responses:
+        "201":
+          description: Created concept
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Concept"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+  /concepts/{id}:
+    get:
+      tags: [content]
+      summary: Get a concept by id
+      operationId: getConcept
+      parameters:
+        - $ref: "#/components/parameters/IdPath"
+      responses:
+        "200":
+          description: Concept detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Concept"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    patch:
+      tags: [content]
+      summary: Update a concept by id
+      operationId: updateConcept
+      parameters:
+        - $ref: "#/components/parameters/IdPath"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateConceptRequest"
+      responses:
+        "200":
+          description: Updated concept
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Concept"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+  /learning/roadmap:
+    get:
+      tags: [learning]
+      summary: Get the current user's roadmap tasks
+      operationId: getRoadmap
+      responses:
+        "200":
+          description: Roadmap tasks
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RoadmapTask"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /learning/tasks/{id}:
+    patch:
+      tags: [learning]
+      summary: Update a roadmap task
+      operationId: updateRoadmapTask
+      parameters:
+        - $ref: "#/components/parameters/IdPath"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateRoadmapTaskRequest"
+      responses:
+        "200":
+          description: Updated roadmap task
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RoadmapTask"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /learning/review-queue:
+    get:
+      tags: [learning]
+      summary: Get due review cards
+      operationId: getReviewQueue
+      responses:
+        "200":
+          description: Review queue
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ReviewCard"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /learning/review-cards/{id}/answer:
+    post:
+      tags: [learning]
+      summary: Answer a review card
+      operationId: answerReviewCard
+      parameters:
+        - $ref: "#/components/parameters/IdPath"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AnswerReviewCardRequest"
+      responses:
+        "200":
+          description: Updated review card result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AnswerReviewCardResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /runtime/python-runs:
+    post:
+      tags: [runtime]
+      summary: Run Python code through the configured runtime
+      operationId: runPython
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PythonRunRequest"
+      responses:
+        "200":
+          description: Python run result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PythonRunResponse"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+  /admin/overview:
+    get:
+      tags: [admin]
+      summary: Get admin dashboard overview
+      operationId: getAdminOverview
+      responses:
+        "200":
+          description: Admin overview
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminOverview"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /admin/moderation-queue:
+    get:
+      tags: [admin]
+      summary: Get the moderation queue preview
+      operationId: getModerationQueue
+      responses:
+        "200":
+          description: Moderation queue items
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ModerationQueueItem"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+components:
+  parameters:
+    IdPath:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+  responses:
+    Unauthorized:
+      description: Not authenticated
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ApiErrorPayload"
+    Forbidden:
+      description: Authenticated but not allowed
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ApiErrorPayload"
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ApiErrorPayload"
+    ValidationError:
+      description: Invalid input
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ApiErrorPayload"
+  schemas:
+    UserRole:
+      type: string
+      enum: [user, admin]
+    Visibility:
+      type: string
+      enum: [private, public, unlisted]
+    ConceptStatus:
+      type: string
+      enum: [draft, published, archived]
+    ConceptSectionKind:
+      type: string
+      enum: [math, code, paper, note]
+    ReviewAnswerRating:
+      type: string
+      enum: [again, hard, good]
+    ApiErrorPayload:
+      type: object
+      required: [code, message]
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        details:
+          type: object
+          additionalProperties: true
+    User:
+      type: object
+      required: [id, email, displayName, role, level, avatarUrl, createdAt]
+      properties:
+        id:
+          type: string
+        email:
+          type: string
+          format: email
+        displayName:
+          type: string
+        role:
+          $ref: "#/components/schemas/UserRole"
+        level:
+          type: integer
+        avatarUrl:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 1
+    LoginResponse:
+      type: object
+      required: [user]
+      properties:
+        user:
+          $ref: "#/components/schemas/User"
+    ConceptSection:
+      type: object
+      required: [id, kind, title, body]
+      properties:
+        id:
+          type: string
+        kind:
+          $ref: "#/components/schemas/ConceptSectionKind"
+        title:
+          type: string
+        body:
+          type: string
+        language:
+          type: string
+        sourceTitle:
+          type: string
+        sourceMeta:
+          type: string
+    Concept:
+      type: object
+      required:
+        - id
+        - ownerId
+        - title
+        - slug
+        - summary
+        - visibility
+        - status
+        - tags
+        - sections
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: string
+        ownerId:
+          type: string
+        title:
+          type: string
+        slug:
+          type: string
+        summary:
+          type: string
+        visibility:
+          $ref: "#/components/schemas/Visibility"
+        status:
+          $ref: "#/components/schemas/ConceptStatus"
+        tags:
+          type: array
+          items:
+            type: string
+        sections:
+          type: array
+          items:
+            $ref: "#/components/schemas/ConceptSection"
+        mastery:
+          type: integer
+          minimum: 0
+          maximum: 100
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    CreateConceptRequest:
+      type: object
+      required: [title, summary, visibility]
+      properties:
+        title:
+          type: string
+        summary:
+          type: string
+        visibility:
+          $ref: "#/components/schemas/Visibility"
+        tags:
+          type: array
+          items:
+            type: string
+        sections:
+          type: array
+          items:
+            $ref: "#/components/schemas/ConceptSection"
+    UpdateConceptRequest:
+      type: object
+      properties:
+        title:
+          type: string
+        summary:
+          type: string
+        visibility:
+          $ref: "#/components/schemas/Visibility"
+        status:
+          $ref: "#/components/schemas/ConceptStatus"
+        tags:
+          type: array
+          items:
+            type: string
+        sections:
+          type: array
+          items:
+            $ref: "#/components/schemas/ConceptSection"
+    RoadmapTask:
+      type: object
+      required: [id, title, description, status, conceptId, order, updatedAt]
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+          enum: [done, current, pending]
+        conceptId:
+          type: string
+        order:
+          type: integer
+        updatedAt:
+          type: string
+          format: date-time
+    UpdateRoadmapTaskRequest:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [done, current, pending]
+    ReviewCard:
+      type: object
+      required: [id, conceptId, prompt, errorSummary, userCode, referenceCode, dueAt, status]
+      properties:
+        id:
+          type: string
+        conceptId:
+          type: string
+        prompt:
+          type: string
+        errorSummary:
+          type: string
+        userCode:
+          type: string
+        referenceCode:
+          type: string
+        dueAt:
+          type: string
+          format: date-time
+        status:
+          type: string
+          enum: [due, answered]
+        lastRating:
+          $ref: "#/components/schemas/ReviewAnswerRating"
+    AnswerReviewCardRequest:
+      type: object
+      required: [rating]
+      properties:
+        rating:
+          $ref: "#/components/schemas/ReviewAnswerRating"
+        userCode:
+          type: string
+    AnswerReviewCardResponse:
+      type: object
+      required: [card, nextDueAt]
+      properties:
+        card:
+          $ref: "#/components/schemas/ReviewCard"
+        nextDueAt:
+          type: string
+          format: date-time
+    PythonRunRequest:
+      type: object
+      required: [code]
+      properties:
+        code:
+          type: string
+        timeoutMs:
+          type: integer
+          minimum: 1
+    PythonRunResponse:
+      type: object
+      required: [status, stdout, stderr, durationMs]
+      properties:
+        status:
+          type: string
+          enum: [succeeded, failed, skipped]
+        stdout:
+          type: string
+        stderr:
+          type: string
+        durationMs:
+          type: integer
+    AdminOverview:
+      type: object
+      required: [moderationPendingCount, activeUserCount, publicConceptCount, apiBasePath]
+      properties:
+        moderationPendingCount:
+          type: integer
+        activeUserCount:
+          type: integer
+        publicConceptCount:
+          type: integer
+        apiBasePath:
+          type: string
+    ModerationQueueItem:
+      type: object
+      required: [id, type, title, status, ageLabel, createdAt]
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+        title:
+          type: string
+        status:
+          type: string
+        ageLabel:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
