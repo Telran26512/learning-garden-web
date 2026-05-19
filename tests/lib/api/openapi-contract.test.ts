@@ -24,6 +24,35 @@ describe("OpenAPI contract", () => {
     }
   });
 
+  it("declares the M2-M6 API paths needed by the mock-first frontend", () => {
+    for (const path of [
+      "/content/public:",
+      "/content/public/{slug}:",
+      "/users/{id}/public-profile:",
+      "/social/feed:",
+      "/social/discussions:",
+      "/social/discussions/{id}/replies:",
+      "/social/notifications:",
+      "/social/notifications/{id}:",
+      "/social/follows:",
+      "/social/follows/{userId}:",
+      "/comments:",
+      "/comments/{id}:",
+      "/relations/graph:",
+      "/relations/backlinks:",
+      "/portfolio/{userId}:",
+      "/admin/reports:",
+      "/admin/reports/{id}/resolve:",
+      "/admin/content/{id}/moderate:",
+      "/admin/comments/{id}/moderate:",
+      "/admin/users/{id}/restrict:",
+      "/admin/registration:",
+      "/admin/actions:",
+    ]) {
+      expect(openApi).toContain(path);
+    }
+  });
+
   it("declares shared DTO schemas used by TypeScript contracts", () => {
     for (const schema of [
       "User:",

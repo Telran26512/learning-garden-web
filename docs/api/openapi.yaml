@@ -9,6 +9,9 @@ tags:
   - name: identity
   - name: content
   - name: learning
+  - name: social
+  - name: relations
+  - name: portfolio
   - name: runtime
   - name: admin
 paths:
@@ -284,6 +287,458 @@ paths:
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
+  /content/public:
+    get:
+      tags: [content]
+      summary: List public content
+      operationId: listPublicContent
+      parameters:
+        - name: contentType
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [all, concept, experiment, paper]
+        - name: ownerId
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: tag
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Public content list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PublicContentItem"
+  /content/public/{slug}:
+    get:
+      tags: [content]
+      summary: Get public content by slug
+      operationId: getPublicContent
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Public content detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PublicContentItem"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /users/{id}/public-profile:
+    get:
+      tags: [identity]
+      summary: Get a public user profile
+      operationId: getPublicProfile
+      parameters:
+        - $ref: "#/components/parameters/IdPath"
+      responses:
+        "200":
+          description: Public profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PublicProfile"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /social/feed:
+    get:
+      tags: [social]
+      summary: Get social activity feed
+      operationId: getActivityFeed
+      responses:
+        "200":
+          description: Activity feed
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ActivityFeedItem"
+  /social/discussions:
+    get:
+      tags: [social]
+      summary: List discussions
+      operationId: listDiscussions
+      responses:
+        "200":
+          description: Discussions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Discussion"
+    post:
+      tags: [social]
+      summary: Create a discussion
+      operationId: createDiscussion
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [title, body]
+              properties:
+                title:
+                  type: string
+                body:
+                  type: string
+      responses:
+        "201":
+          description: Created discussion
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Discussion"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+  /social/discussions/{id}/replies:
+    post:
+      tags: [social]
+      summary: Reply to a discussion
+      operationId: createDiscussionReply
+      parameters:
+        - $ref: "#/components/parameters/IdPath"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [body, targetId, targetType]
+              properties:
+                body:
+                  type: string
+                parentId:
+                  type: string
+                targetId:
+                  type: string
+                targetType:
+                  type: string
+                  enum: [content, discussion]
+      responses:
+        "201":
+          description: Created reply
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Comment"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+  /social/notifications:
+    get:
+      tags: [social]
+      summary: List notifications
+      operationId: listNotifications
+      responses:
+        "200":
+          description: Notifications
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/NotificationItem"
+  /social/notifications/{id}:
+    patch:
+      tags: [social]
+      summary: Update a notification
+      operationId: updateNotification
+      parameters:
+        - $ref: "#/components/parameters/IdPath"
+      responses:
+        "200":
+          description: Updated notification
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotificationItem"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /social/follows:
+    post:
+      tags: [social]
+      summary: Follow a user
+      operationId: followUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [userId]
+              properties:
+                userId:
+                  type: string
+      responses:
+        "200":
+          description: Followed profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PublicProfile"
+  /social/follows/{userId}:
+    delete:
+      tags: [social]
+      summary: Unfollow a user
+      operationId: unfollowUser
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Unfollowed profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PublicProfile"
+  /comments:
+    get:
+      tags: [social]
+      summary: List comments
+      operationId: listComments
+      responses:
+        "200":
+          description: Comments
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Comment"
+    post:
+      tags: [social]
+      summary: Create a comment
+      operationId: createComment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [body, targetId, targetType]
+              properties:
+                body:
+                  type: string
+                parentId:
+                  type: string
+                targetId:
+                  type: string
+                targetType:
+                  type: string
+                  enum: [content, discussion]
+      responses:
+        "201":
+          description: Created comment
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Comment"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+  /comments/{id}:
+    delete:
+      tags: [social]
+      summary: Delete a comment
+      operationId: deleteComment
+      parameters:
+        - $ref: "#/components/parameters/IdPath"
+      responses:
+        "204":
+          description: Comment deleted
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /relations/graph:
+    get:
+      tags: [relations]
+      summary: Get the knowledge graph
+      operationId: getKnowledgeGraph
+      responses:
+        "200":
+          description: Knowledge graph
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KnowledgeGraph"
+  /relations/backlinks:
+    get:
+      tags: [relations]
+      summary: List backlinks
+      operationId: listBacklinks
+      responses:
+        "200":
+          description: Backlinks
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Backlink"
+  /portfolio/{userId}:
+    get:
+      tags: [portfolio]
+      summary: Get a user portfolio
+      operationId: getPortfolio
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Portfolio
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Portfolio"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /admin/reports:
+    get:
+      tags: [admin]
+      summary: List moderation reports
+      operationId: listModerationReports
+      responses:
+        "200":
+          description: Moderation reports
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ModerationReport"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /admin/reports/{id}/resolve:
+    post:
+      tags: [admin]
+      summary: Resolve a moderation report
+      operationId: resolveModerationReport
+      parameters:
+        - $ref: "#/components/parameters/IdPath"
+      responses:
+        "200":
+          description: Resolved moderation report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ModerationReport"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /admin/content/{id}/moderate:
+    post:
+      tags: [admin]
+      summary: Moderate content
+      operationId: moderateContent
+      parameters:
+        - $ref: "#/components/parameters/IdPath"
+      responses:
+        "200":
+          description: Moderation action
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminAction"
+  /admin/comments/{id}/moderate:
+    post:
+      tags: [admin]
+      summary: Moderate a comment
+      operationId: moderateComment
+      parameters:
+        - $ref: "#/components/parameters/IdPath"
+      responses:
+        "200":
+          description: Moderation action
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminAction"
+  /admin/users/{id}/restrict:
+    post:
+      tags: [admin]
+      summary: Restrict a user
+      operationId: restrictUser
+      parameters:
+        - $ref: "#/components/parameters/IdPath"
+      responses:
+        "200":
+          description: Restriction action
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminAction"
+  /admin/registration:
+    get:
+      tags: [admin]
+      summary: Get registration settings
+      operationId: getRegistrationSettings
+      responses:
+        "200":
+          description: Registration settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RegistrationSettings"
+    patch:
+      tags: [admin]
+      summary: Update registration settings
+      operationId: updateRegistrationSettings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [inviteOnly, openRegistration]
+              properties:
+                inviteOnly:
+                  type: boolean
+                openRegistration:
+                  type: boolean
+      responses:
+        "200":
+          description: Registration settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RegistrationSettings"
+  /admin/actions:
+    get:
+      tags: [admin]
+      summary: List admin actions
+      operationId: listAdminActions
+      responses:
+        "200":
+          description: Admin actions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AdminAction"
 components:
   parameters:
     IdPath:
@@ -332,7 +787,7 @@ components:
       enum: [math, code, paper, note]
     ReviewAnswerRating:
       type: string
-      enum: [again, hard, good]
+      enum: [again, easy, hard, good]
     ApiErrorPayload:
       type: object
       required: [code, message]
@@ -360,6 +815,355 @@ components:
         level:
           type: integer
         avatarUrl:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+    PublicAuthor:
+      type: object
+      required: [id, displayName, avatarUrl, level]
+      properties:
+        id:
+          type: string
+        displayName:
+          type: string
+        avatarUrl:
+          type: string
+        level:
+          type: integer
+    PublicTarget:
+      type: object
+      required: [id, label, type]
+      properties:
+        id:
+          type: string
+        label:
+          type: string
+        type:
+          type: string
+          enum: [content, discussion, profile]
+    ModerationTarget:
+      type: object
+      required: [id, label, type]
+      properties:
+        id:
+          type: string
+        label:
+          type: string
+        type:
+          type: string
+          enum: [comment, content, discussion, user]
+    PublicContentItem:
+      type: object
+      required:
+        - id
+        - ownerId
+        - author
+        - title
+        - slug
+        - excerpt
+        - visibility
+        - contentType
+        - tags
+        - commentCount
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: string
+        ownerId:
+          type: string
+        author:
+          $ref: "#/components/schemas/PublicAuthor"
+        title:
+          type: string
+        slug:
+          type: string
+        excerpt:
+          type: string
+        visibility:
+          type: string
+          enum: [public]
+        contentType:
+          type: string
+          enum: [concept, experiment, paper]
+        tags:
+          type: array
+          items:
+            type: string
+        commentCount:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    PublicProfile:
+      type: object
+      required:
+        - id
+        - displayName
+        - avatarUrl
+        - bio
+        - level
+        - followerCount
+        - followingCount
+        - publicContentCount
+        - isFollowing
+        - stats
+      properties:
+        id:
+          type: string
+        displayName:
+          type: string
+        avatarUrl:
+          type: string
+        bio:
+          type: string
+        level:
+          type: integer
+        followerCount:
+          type: integer
+        followingCount:
+          type: integer
+        publicContentCount:
+          type: integer
+        isFollowing:
+          type: boolean
+        stats:
+          type: array
+          items:
+            type: object
+            required: [label, value]
+            properties:
+              label:
+                type: string
+              value:
+                type: string
+    Comment:
+      type: object
+      required: [id, author, body, targetId, targetType, createdAt, updatedAt]
+      properties:
+        id:
+          type: string
+        author:
+          $ref: "#/components/schemas/PublicAuthor"
+        body:
+          type: string
+        parentId:
+          type: string
+        targetId:
+          type: string
+        targetType:
+          type: string
+          enum: [content, discussion]
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    Discussion:
+      type: object
+      required: [id, author, title, body, status, replyCount, replies, createdAt, updatedAt]
+      properties:
+        id:
+          type: string
+        author:
+          $ref: "#/components/schemas/PublicAuthor"
+        title:
+          type: string
+        body:
+          type: string
+        status:
+          type: string
+          enum: [closed, open]
+        replyCount:
+          type: integer
+        replies:
+          type: array
+          items:
+            $ref: "#/components/schemas/Comment"
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    ActivityFeedItem:
+      type: object
+      required: [id, actor, summary, target, type, createdAt]
+      properties:
+        id:
+          type: string
+        actor:
+          $ref: "#/components/schemas/PublicAuthor"
+        summary:
+          type: string
+        target:
+          $ref: "#/components/schemas/PublicTarget"
+        type:
+          type: string
+          enum: [commented, followed, published_content, reviewed]
+        createdAt:
+          type: string
+          format: date-time
+    NotificationItem:
+      type: object
+      required: [id, title, body, type, readAt, createdAt]
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        body:
+          type: string
+        type:
+          type: string
+          enum: [comment, follow, moderation, reply]
+        target:
+          $ref: "#/components/schemas/PublicTarget"
+        readAt:
+          type:
+            - string
+            - "null"
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+    GraphNode:
+      type: object
+      required: [id, label, status, x, y]
+      properties:
+        id:
+          type: string
+        label:
+          type: string
+        relatedContentId:
+          type: string
+        status:
+          type: string
+          enum: [active, locked, mastered, next]
+        x:
+          type: number
+        y:
+          type: number
+    GraphEdge:
+      type: object
+      required: [id, from, to, label]
+      properties:
+        id:
+          type: string
+        from:
+          type: string
+        to:
+          type: string
+        label:
+          type: string
+    KnowledgeGraph:
+      type: object
+      required: [nodes, edges]
+      properties:
+        nodes:
+          type: array
+          items:
+            $ref: "#/components/schemas/GraphNode"
+        edges:
+          type: array
+          items:
+            $ref: "#/components/schemas/GraphEdge"
+    Backlink:
+      type: object
+      required: [id, sourceId, sourceTitle, targetId, type]
+      properties:
+        id:
+          type: string
+        sourceId:
+          type: string
+        sourceTitle:
+          type: string
+        targetId:
+          type: string
+        type:
+          type: string
+          enum: [depends_on, extends, references]
+    Portfolio:
+      type: object
+      required: [owner, highlights, evidence, updatedAt]
+      properties:
+        owner:
+          $ref: "#/components/schemas/PublicAuthor"
+        highlights:
+          type: array
+          items:
+            type: object
+            required: [label, value]
+            properties:
+              label:
+                type: string
+              value:
+                type: string
+        evidence:
+          type: array
+          items:
+            type: object
+            required: [id, title, description, type]
+            properties:
+              id:
+                type: string
+              title:
+                type: string
+              description:
+                type: string
+              type:
+                type: string
+                enum: [concept_chain, project, writing]
+        updatedAt:
+          type: string
+          format: date-time
+    ModerationReport:
+      type: object
+      required: [id, target, reporter, reason, status, createdAt]
+      properties:
+        id:
+          type: string
+        target:
+          $ref: "#/components/schemas/ModerationTarget"
+        reporter:
+          $ref: "#/components/schemas/PublicAuthor"
+        reason:
+          type: string
+        status:
+          type: string
+          enum: [dismissed, escalated, open, resolved]
+        createdAt:
+          type: string
+          format: date-time
+    RegistrationSettings:
+      type: object
+      required: [inviteOnly, openRegistration, updatedAt]
+      properties:
+        inviteOnly:
+          type: boolean
+        openRegistration:
+          type: boolean
+        updatedAt:
+          type: string
+          format: date-time
+    AdminAction:
+      type: object
+      required: [id, actorId, action, target, reason, createdAt]
+      properties:
+        id:
+          type: string
+        actorId:
+          type: string
+        action:
+          type: string
+        target:
+          $ref: "#/components/schemas/ModerationTarget"
+        reason:
           type: string
         createdAt:
           type: string
@@ -511,7 +1315,18 @@ components:
           enum: [done, current, pending]
     ReviewCard:
       type: object
-      required: [id, conceptId, prompt, errorSummary, userCode, referenceCode, dueAt, status]
+      required:
+        - id
+        - conceptId
+        - prompt
+        - errorSummary
+        - userCode
+        - referenceCode
+        - dueAt
+        - status
+        - ease
+        - intervalDays
+        - lastReviewedAt
       properties:
         id:
           type: string
@@ -531,6 +1346,15 @@ components:
         status:
           type: string
           enum: [due, answered]
+        ease:
+          type: number
+        intervalDays:
+          type: integer
+        lastReviewedAt:
+          type:
+            - string
+            - "null"
+          format: date-time
         lastRating:
           $ref: "#/components/schemas/ReviewAnswerRating"
     AnswerReviewCardRequest:
