@@ -11,7 +11,6 @@ import type {
   ListPublicContentQuery,
   ModerateContentInput,
   ModerationTarget,
-  NotificationItem,
   PublicContentDetail,
   PublicContentItem,
   PublicProfile,
@@ -48,14 +47,14 @@ export type MockApiRepository = ReturnType<typeof createMockApiRepository>;
 
 export function createMockApiRepository() {
   let currentUser: User | null = { ...mockCurrentUser };
-  let activityFeed = clone(mockActivityFeed);
+  const activityFeed = clone(mockActivityFeed);
   let adminActions = clone(mockAdminActions);
   let comments = clone(mockComments);
   let concepts = clone(mockConcepts);
   let discussions = clone(mockDiscussions);
   const graph = cloneOne(mockGraph);
-  let moderationReports = clone(mockModerationReports);
-  let notifications = clone(mockNotifications);
+  const moderationReports = clone(mockModerationReports);
+  const notifications = clone(mockNotifications);
   const backlinks = clone(mockBacklinks);
   const portfolios = clone(mockPortfolios);
   const publicContent = clone(mockPublicContent);
