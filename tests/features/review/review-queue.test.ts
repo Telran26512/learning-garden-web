@@ -19,5 +19,13 @@ describe("review queue state", () => {
 
     expect(getCurrentReviewCard(nextQueue)?.id).toBe(mockReviewCards[1]?.id);
   });
-});
 
+  it("selects the first due card when earlier cards are already answered", () => {
+    const queue = [
+      { ...mockReviewCards[0]!, status: "answered" as const, userCode: "stale code" },
+      { ...mockReviewCards[1]!, status: "due" as const, userCode: "current code" },
+    ];
+
+    expect(getCurrentReviewCard(queue)?.userCode).toBe("current code");
+  });
+});

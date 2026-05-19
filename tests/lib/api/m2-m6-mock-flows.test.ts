@@ -111,8 +111,10 @@ describe("M4 social mock flows", () => {
     const followed = await socialApi.followUser("user_ada");
     const notifications = await socialApi.getNotifications();
     const unread = notifications.find((item) => item.readAt === null);
+    const unfollowed = await socialApi.unfollowUser("user_ada");
 
     expect(followed.isFollowing).toBe(true);
+    expect(unfollowed.isFollowing).toBe(false);
     expect(unread).toBeDefined();
 
     const read = await socialApi.markNotificationRead(unread!.id);

@@ -26,7 +26,7 @@ export function ReviewRoute() {
       .then((queue) => {
         if (isActive) {
           setCards(queue);
-          setUserCode(queue[0]?.userCode ?? "");
+          setUserCode(getCurrentReviewCard(queue)?.userCode ?? "");
           setIsLoading(false);
         }
       })
