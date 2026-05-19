@@ -3,6 +3,7 @@ import type {
   CreateConceptInput,
   ListConceptsQuery,
   ListPublicContentQuery,
+  PublicContentDetail,
   PublicContentItem,
   PublicProfile,
   UpdateConceptInput,
@@ -25,7 +26,10 @@ export const contentApi = {
     return getApiTransport().request<Concept[]>("GET", `/concepts${suffix}`);
   },
   getPublicContent(slug: string) {
-    return getApiTransport().request<Concept>("GET", `/content/public/${encodeURIComponent(slug)}`);
+    return getApiTransport().request<PublicContentDetail>(
+      "GET",
+      `/content/public/${encodeURIComponent(slug)}`,
+    );
   },
   getPublicProfile(id: string) {
     return getApiTransport().request<PublicProfile>(

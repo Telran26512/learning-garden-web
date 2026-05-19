@@ -335,7 +335,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Concept"
+                $ref: "#/components/schemas/PublicContentDetail"
         "404":
           $ref: "#/components/responses/NotFound"
   /users/{id}/public-profile:
@@ -917,6 +917,50 @@ components:
             type: string
         commentCount:
           type: integer
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    PublicContentDetail:
+      type: object
+      required:
+        - id
+        - ownerId
+        - title
+        - slug
+        - summary
+        - visibility
+        - status
+        - tags
+        - sections
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: string
+        ownerId:
+          type: string
+        title:
+          type: string
+        slug:
+          type: string
+        summary:
+          type: string
+        visibility:
+          type: string
+          enum: [public]
+        status:
+          $ref: "#/components/schemas/ConceptStatus"
+        tags:
+          type: array
+          items:
+            type: string
+        sections:
+          type: array
+          items:
+            $ref: "#/components/schemas/ConceptSection"
         createdAt:
           type: string
           format: date-time

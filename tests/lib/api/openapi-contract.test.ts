@@ -125,6 +125,7 @@ describe("OpenAPI contract", () => {
     for (const schema of [
       "PublicAuthor",
       "PublicContentItem",
+      "PublicContentDetail",
       "PublicProfile",
       "Comment",
       "Discussion",
@@ -141,6 +142,12 @@ describe("OpenAPI contract", () => {
     ]) {
       expect(schemaKeys).toContain(schema);
     }
+  });
+
+  it("declares public content detail as a public DTO", () => {
+    const publicDetailPath = getPathSection(openApi, "/content/public/{slug}");
+
+    expect(publicDetailPath).toContain('$ref: "#/components/schemas/PublicContentDetail"');
   });
 
   it("declares shared DTO schemas used by TypeScript contracts", () => {

@@ -54,6 +54,20 @@ export type PublicContentItem = {
   visibility: "public";
 };
 
+export type PublicContentDetail = {
+  createdAt: string;
+  id: string;
+  ownerId: string;
+  sections: ConceptSection[];
+  slug: string;
+  status: ConceptStatus;
+  summary: string;
+  tags: string[];
+  title: string;
+  updatedAt: string;
+  visibility: "public";
+};
+
 export type ListPublicContentQuery = {
   contentType?: ContentType | "all";
   ownerId?: string;

@@ -3,6 +3,8 @@ import type {
   Concept,
   CreateConceptInput,
   ListPublicContentQuery,
+  PublicContentDetail,
+  PublicContentItem,
   UpdateConceptInput,
   UpdateRoadmapTaskInput,
   User,
@@ -88,16 +90,21 @@ export function createMockApiRepository() {
       return cloneOne(concept);
     },
     getPublicContent(slug: string) {
-      const content = concepts.find((item) => item.slug === slug && item.visibility === "public");
-
-      if (content) {
-        return cloneOne(content);
-      }
-
-      const publicItem = publicContent.find((item) => item.slug === slug);
+      const publicItem = publicContent.find(
+        (item) => item.slug === slug && isPublicContentVisible(item, concepts),
+      );
 
       if (!publicItem) {
         throw createApiDomainError(404, "not_found", "Public content not found");
+      }
+
+      const concept = concepts.find(
+        (item) =>
+          item.id === publicItem.id && item.slug === publicItem.slug && item.visibility === "public",
+      );
+
+      if (concept) {
+        return cloneOne(toPublicContentDetail(concept));
       }
 
       return cloneOne({
@@ -145,6 +152,10 @@ export function createMockApiRepository() {
     listPublicContent(query: ListPublicContentQuery = {}) {
       return clone(
         publicContent.filter((item) => {
+          if (!isPublicContentVisible(item, concepts)) {
+            return false;
+          }
+
           if (
             query.contentType &&
             query.contentType !== "all" &&
@@ -241,6 +252,27 @@ function slugify(value: string) {
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-|-$/g, "");
+}
+
+function isPublicContentVisible(item: PublicContentItem, concepts: Concept[]) {
+  const mutableConcept = concepts.find((concept) => concept.id === item.id && concept.slug === item.slug);
+  return !mutableConcept || mutableConcept.visibility === "public";
+}
+
+function toPublicContentDetail(concept: Concept): PublicContentDetail {
+  return {
+    createdAt: concept.createdAt,
+    id: concept.id,
+    ownerId: concept.ownerId,
+    sections: clone(concept.sections),
+    slug: concept.slug,
+    status: concept.status,
+    summary: concept.summary,
+    tags: [...concept.tags],
+    title: concept.title,
+    updatedAt: concept.updatedAt,
+    visibility: "public",
+  };
 }
 
 function clone<T>(value: T[]): T[] {

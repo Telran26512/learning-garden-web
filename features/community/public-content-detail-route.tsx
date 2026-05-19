@@ -6,12 +6,12 @@ import { useSynapseNavigation } from "@/components/layout/use-synapse-navigation
 import { StateSurface } from "@/components/ui/state-surface";
 import { PublicContentDetailScreen } from "@/features/community/public-content-detail-screen";
 import { contentApi, normalizeApiError } from "@/lib/api";
-import type { Concept } from "@/lib/api";
+import type { PublicContentDetail } from "@/lib/api";
 
 export function PublicContentDetailRoute({ slug }: { slug: string }) {
   const goTo = useSynapseNavigation();
   const [state, setState] = useState<
-    | { concept: Concept; status: "ready" }
+    | { concept: PublicContentDetail; status: "ready" }
     | { message: string; status: "error" }
     | { status: "loading" }
   >({ status: "loading" });

@@ -28,6 +28,7 @@ describe("M2 public content mock flows", () => {
     const profile = await contentApi.getPublicProfile("user_raymond");
 
     expect(detail.slug).toBe("linear-regression-ols");
+    expect(Object.hasOwn(detail, "mastery")).toBe(false);
     expect(profile).toMatchObject({ id: "user_raymond", displayName: "Raymond" });
   });
 
@@ -42,5 +43,19 @@ describe("M2 public content mock flows", () => {
     expect(details.map((detail) => detail.id).sort()).toEqual(feed.map((item) => item.id).sort());
     expect(fallbackDetail.sections).toEqual([]);
     expect(fallbackDetail.summary).toContain("softmax");
+  });
+
+  it("does not expose stale public fixtures after a concept becomes private", async () => {
+    useFreshMockTransport();
+
+    await contentApi.updateConcept("concept_linear_regression", { visibility: "private" });
+
+    const feed = await contentApi.listPublicContent();
+
+    expect(feed.some((item) => item.id === "concept_linear_regression")).toBe(false);
+    await expect(contentApi.getPublicContent("linear-regression-ols")).rejects.toMatchObject({
+      code: "not_found",
+      status: 404,
+    });
   });
 });

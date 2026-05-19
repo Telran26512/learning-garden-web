@@ -23,7 +23,7 @@ export function ReviewScreen({
   if (!currentCard) {
     return (
       <section className="py-6">
-        <div className="rounded-[18px] border hair bg-white/45 p-6">
+        <div className="border-y hair py-6">
           <div className="sect-label">Review Queue</div>
           <h1 className="mt-2 text-[22px] font-bold">今天没有待复习卡片</h1>
           <p className="mt-2 text-[13px] text-slate-500">继续完成 Workspace 中的训练任务。</p>

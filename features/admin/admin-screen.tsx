@@ -83,7 +83,7 @@ export function AdminScreen() {
                   <h2 className="font-serif text-[22px] font-semibold tracking-[-0.03em]">内容治理队列</h2>
                   <span className="sect-label">M6 前保留人工可见性</span>
                 </div>
-                <div className="overflow-hidden rounded-[18px] border hair bg-white/45">
+                <div className="border-y hair">
                   {state.queue.map((item) => (
                     <div
                       className="grid grid-cols-1 gap-2 border-b hair px-4 py-3 last:border-0 md:grid-cols-[120px_minmax(0,1fr)_90px_70px]"

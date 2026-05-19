@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Avatar } from "@/components/layout/top-nav";
+import Image from "next/image";
 import type { PublicProfile } from "@/lib/api";
 
 export function UserProfileScreen({ profile }: { profile: PublicProfile }) {
@@ -13,9 +13,15 @@ export function UserProfileScreen({ profile }: { profile: PublicProfile }) {
       >
         ← 返回社区
       </Link>
-      <div className="mt-4 rounded-[24px] border hair bg-white/70 p-6">
+      <header className="mt-5 border-b hair pb-8">
         <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
-          <Avatar size="lg" />
+          <Image
+            alt={`${profile.displayName} avatar`}
+            className="h-20 w-20 rounded-full object-cover"
+            height={80}
+            src={profile.avatarUrl}
+            width={80}
+          />
           <div className="min-w-0 flex-1">
             <div className="sect-label">Public Profile</div>
             <h1 className="mt-1 text-[28px] font-bold tracking-[-0.04em]">{profile.displayName}</h1>
@@ -23,18 +29,18 @@ export function UserProfileScreen({ profile }: { profile: PublicProfile }) {
               {profile.bio}
             </p>
           </div>
-          <div className="rounded-md border hair bg-[var(--paper)]/70 px-4 py-2 text-[12px] font-medium text-slate-500">
+          <div className="text-[12px] font-medium text-slate-500">
             公开主页 · follow 操作将在 M4 接入
           </div>
         </div>
-        <div className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-4">
+        <div className="mt-7 grid grid-cols-2 border-y hair py-4 md:grid-cols-4">
           <ProfileMetric label="等级" value={`Lv.${profile.level}`} />
           <ProfileMetric label="关注者" value={String(profile.followerCount)} />
           <ProfileMetric label="正在关注" value={String(profile.followingCount)} />
           <ProfileMetric label="公开内容" value={String(profile.publicContentCount)} />
         </div>
-      </div>
-      <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      </header>
+      <div className="grid gap-0 border-b hair sm:grid-cols-2 lg:grid-cols-4">
         {profile.stats.map((stat) => (
           <ProfileMetric key={stat.label} label={stat.label} value={stat.value} />
         ))}
@@ -45,7 +51,7 @@ export function UserProfileScreen({ profile }: { profile: PublicProfile }) {
 
 function ProfileMetric({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-[18px] border hair bg-white/60 p-4">
+    <div className="border-r hair px-4 py-4 last:border-r-0">
       <div className="num text-[20px] font-bold">{value}</div>
       <div className="mt-1 text-[11px] text-slate-400">{label}</div>
     </div>

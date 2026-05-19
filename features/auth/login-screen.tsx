@@ -22,7 +22,7 @@ export function LoginScreen() {
 
   return (
     <main className="min-h-screen bg-[var(--paper)] px-5 py-8 text-[13px] text-[color:var(--ink)]">
-      <div className="mx-auto grid min-h-[calc(100vh-64px)] max-w-[1120px] grid-cols-1 overflow-hidden rounded-[28px] border hair bg-white/35 lg:grid-cols-[0.9fr_1.1fr]">
+      <div className="mx-auto grid min-h-[calc(100vh-64px)] max-w-[1120px] grid-cols-1 lg:grid-cols-[0.9fr_1.1fr]">
         <section className="relative border-b hair p-7 lg:border-b-0 lg:border-r">
           <div className="absolute inset-0 bg-[linear-gradient(120deg,rgba(31,138,71,0.16),transparent_44%),radial-gradient(circle_at_24%_18%,rgba(245,158,11,0.18),transparent_26%)]" />
           <div className="relative flex h-full flex-col justify-between">
@@ -101,7 +101,7 @@ export function LoginScreen() {
 
 function MiniStat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl border hair bg-[var(--paper)]/70 p-3">
+    <div className="border-t hair pt-3">
       <div className="num font-serif text-[26px] font-semibold">{value}</div>
       <div className="text-[11px] text-[color:var(--muted)]">{label}</div>
     </div>

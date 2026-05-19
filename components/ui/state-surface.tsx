@@ -21,13 +21,13 @@ export function StateSurface({
   return (
     <div
       className={cn(
-        "relative overflow-hidden rounded-[18px] border hair bg-white/50 p-5",
-        tone === "green" && "border-garden-600/25 bg-garden-50/70",
-        tone === "amber" && "border-amber-500/30 bg-amber-50/70",
+        "relative border-y hair py-5",
+        tone === "green" && "border-garden-600/30",
+        tone === "amber" && "border-amber-500/35",
         className,
       )}
     >
-      <div className="absolute right-4 top-4 font-mono text-[52px] leading-none text-black/[0.03]">
+      <div className="absolute right-0 top-3 font-mono text-[52px] leading-none text-black/[0.035]">
         {tone === "amber" ? "!" : "∴"}
       </div>
       <div className="sect-label">{label}</div>

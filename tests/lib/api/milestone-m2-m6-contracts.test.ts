@@ -10,6 +10,7 @@ import type {
   ModerationReport,
   NotificationItem,
   Portfolio,
+  PublicContentDetail,
   PublicContentItem,
   PublicProfile,
   RegistrationSettings,
@@ -44,8 +45,22 @@ describe("M2-M6 contract DTOs", () => {
       publicContentCount: 8,
       stats: [{ label: "概念", value: "28" }],
     };
+    const detail: PublicContentDetail = {
+      createdAt: "2026-05-19T00:00:00.000Z",
+      id: "concept_linear_regression",
+      ownerId: "user_raymond",
+      sections: [],
+      slug: "linear-regression-ols",
+      status: "published",
+      summary: "公开详情不包含个人 mastery。",
+      tags: ["线性回归"],
+      title: "线性回归公开题解",
+      updatedAt: "2026-05-19T00:00:00.000Z",
+      visibility: "public",
+    };
 
     expect(content.visibility).toBe("public");
+    expect(detail.visibility).toBe("public");
     expect(profile.stats[0]?.label).toBe("概念");
   });
 

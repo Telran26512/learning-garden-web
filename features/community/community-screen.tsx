@@ -28,12 +28,12 @@ export function CommunityScreen({ content }: { content: PublicContentItem[] }) {
               <span>⌕</span>
               <span>搜索题解、实现、错因、公式…</span>
             </div>
-            <span className="rounded-md border hair px-3.5 py-2 text-[13px] text-slate-500">
+            <span className="border-l hair pl-3.5 text-[13px] text-slate-500">
               ⚲ 筛选待后端接入
             </span>
           </div>
           {content.length === 0 ? (
-            <div className="rounded-[18px] border hair bg-white/55 p-6">
+            <div className="border-y hair py-6">
               <div className="sect-label">Empty Feed</div>
               <h2 className="mt-2 text-[18px] font-semibold">暂时没有公开内容</h2>
               <p className="mt-2 text-[13px] text-slate-500">
@@ -149,12 +149,9 @@ function CommunityProfile({ tagRank }: { tagRank: Array<[string, number]> }) {
         <ProfileStat value="8" label="公开内容" />
         <ProfileStat value="128" label="关注者" />
       </div>
-      <button
-        className="mt-4 w-full rounded-md border border-garden-600 py-2 text-[12px] font-medium text-garden-700 transition hover:bg-garden-50"
-        type="button"
-      >
-        ✎ 编辑个人资料
-      </button>
+      <div className="mt-4 border-b hair pb-4 text-center text-[12px] font-medium text-slate-500">
+        个人资料编辑保留在 Workspace 设置中
+      </div>
       <div className="border-b hair py-4">
         <h3 className="mb-2 text-[14px] font-semibold">本周挑战</h3>
         <div className="text-[13px] font-medium">用 NumPy 实现 5 个基础模型</div>
