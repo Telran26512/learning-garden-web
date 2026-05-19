@@ -1,15 +1,18 @@
 "use client";
 
-import { useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { SynapseLogo } from "@/components/synapse/synapse-logo";
 import { ForceGraph, useAttentionGraph } from "./force-graph";
 import { SynapseParticles } from "./synapse-particles";
 
-const PALETTE = ["#4DD0FF", "#60A5FA", "#E07856"];
+const HERO_PARTICLE_PALETTE = ["#6B7280", "#A8A8B3", "#F4F4F7"];
 
 type BlockKind = "math" | "code" | "paper" | "concept";
+type CommunityNodeKind = "Math" | "Code" | "Paper";
 
 export function LandingPage() {
+  useScrollReveal();
+
   return (
     <main className="sn-page">
       <LandingNav />
@@ -21,9 +24,40 @@ export function LandingPage() {
       <LandingWorkflow />
       <LandingPricing />
       <LandingFAQ />
+      <LandingFinalCTA />
       <LandingFooter />
     </main>
   );
+}
+
+function useScrollReveal() {
+  useEffect(() => {
+    const nodes = Array.from(
+      document.querySelectorAll<HTMLElement>(".sn-reveal"),
+    );
+    if (!nodes.length) return;
+
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    if (reduceMotion.matches) {
+      nodes.forEach((node) => node.classList.add("is-visible"));
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return;
+          entry.target.classList.add("is-visible");
+          observer.unobserve(entry.target);
+        });
+      },
+      { rootMargin: "0px 0px -12% 0px", threshold: 0.16 },
+    );
+
+    nodes.forEach((node) => observer.observe(node));
+
+    return () => observer.disconnect();
+  }, []);
 }
 
 function LandingNav() {
@@ -42,15 +76,12 @@ function LandingNav() {
         <a href="#faq">更新日志</a>
       </nav>
       <div className="sn-nav-actions">
-        <a className="sn-btn sn-btn-ghost" href="#faq">
-          登录
-        </a>
+        {/* §1.a 删除右上角“开始学习”按钮。§1.b 登录改成纯文本链接。 */}
         <a
-          className="sn-btn sn-btn-primary"
-          style={{ height: 36, paddingInline: 16, fontSize: 13 }}
-          href="#pricing"
+          className="text-sm font-normal text-[#6B7280] transition-colors hover:text-[#111827]"
+          href="/auth?mode=login"
         >
-          开始学习 →
+          Log in
         </a>
       </div>
     </header>
@@ -61,54 +92,28 @@ function LandingHero() {
   return (
     <section id="top" className="sn-hero">
       <div className="sn-hero-radial" />
-      <SynapseParticles nodeCount={280} colors={PALETTE} />
+      <SynapseParticles nodeCount={280} colors={HERO_PARTICLE_PALETTE} />
 
       <div className="sn-hero-content">
-        <div className="sn-pill" style={{ marginBottom: 28 }}>
-          <span className="sn-pill-dot" /> v0.7 · 知识图谱 · Embedding 推荐 ·
-          全新发布
-        </div>
-        <h1 className="sn-hero-title">
-          Learn AI as a <em>Network</em>
-          <span style={{ color: "var(--text-muted)" }}>,</span>
+        {/* §1.c 删除 hero 中部发布 pill，BETA 信息只保留在导航。 */}
+        {/* §4 重写 hero 标语，去掉衬线、中英混排和 Learn X as Y 句式。 */}
+        <h1 className="mx-auto m-0 max-w-[760px] text-[clamp(28px,8.2vw,52px)] leading-[1.16] font-semibold tracking-normal whitespace-nowrap text-white [font-family:var(--font-sans)] sm:leading-[1.18]">
+          让论文、公式和代码
           <br />
-          not a Stack.
+          互相指向
         </h1>
-        <p className="sn-hero-copy">
-          让你的 AI 学习不再是孤岛。
-          <br />把{" "}
-          <em style={{ color: "var(--block-math)", fontStyle: "normal" }}>
-            数学推导
-          </em>
-          、
-          <em style={{ color: "var(--block-code)", fontStyle: "normal" }}>
-            可运行代码
-          </em>{" "}
-          与{" "}
-          <em style={{ color: "var(--block-paper)", fontStyle: "normal" }}>
-            原始论文
-          </em>{" "}
-          用同一套语义层打通,在公开社区里追踪每一次&quot;想通&quot;的瞬间。
+        <p className="mx-auto mt-5 max-w-[620px] text-[clamp(16px,1.8vw,18px)] leading-[1.6] font-normal text-[#9CA3AF]">
+          下次想不起 §3.2 那一步时，能从代码一路反查回原文。
         </p>
         <div className="sn-hero-ctas">
-          <a className="sn-btn sn-btn-dark" href="#pricing">
+          <a className="sn-btn sn-btn-primary" href="/auth?mode=register">
             开始构建我的第二大脑 →
           </a>
           <a className="sn-btn sn-btn-glass" href="#community">
             浏览社区 Explore
           </a>
         </div>
-        <div className="sn-hero-stats">
-          <span>3,247 位学习者</span>
-          <span aria-hidden="true" style={{ opacity: 0.4 }}>
-            ·
-          </span>
-          <span>11,890 条公开 Note</span>
-          <span aria-hidden="true" style={{ opacity: 0.4 }}>
-            ·
-          </span>
-          <span>38,541 条跨学科 Link</span>
-        </div>
+        {/* §3 删除 BETA 期假数据统计行。 */}
       </div>
 
       <div className="sn-hero-preview">
@@ -186,10 +191,12 @@ function HeroPreviewCard() {
                   key={item}
                   style={{
                     borderLeft: active
-                      ? "2px solid var(--brand-cyan)"
+                      ? "2px solid var(--text-muted)"
                       : "2px solid transparent",
                     borderRadius: 6,
-                    background: active ? "rgba(77,208,255,.08)" : "transparent",
+                    background: active
+                      ? "rgba(255,255,255,.05)"
+                      : "transparent",
                     color: active
                       ? "var(--text-primary)"
                       : "var(--text-secondary)",
@@ -214,7 +221,7 @@ function HeroPreviewCard() {
               fontSize: 11,
             }}
           >
-            <span style={{ color: "var(--block-paper)" }}>● PAPER</span>
+            <span style={{ color: "var(--text-muted)" }}>PAPER</span>
             <span>Vaswani et al. · 2017 · arXiv:1706.03762</span>
           </div>
           <h2
@@ -267,12 +274,12 @@ function HeroPreviewCard() {
               <div
                 style={{
                   marginTop: 4,
-                  color: "var(--brand-cyan)",
+                  color: "var(--text-muted)",
                   fontFamily: "var(--font-mono)",
                   fontSize: 10,
                 }}
               >
-                → {relation}
+                · {relation}
               </div>
             </div>
           ))}
@@ -285,17 +292,14 @@ function HeroPreviewCard() {
 function MiniBlock({ kind }: { kind: Exclude<BlockKind, "concept"> }) {
   const meta = {
     math: {
-      color: "var(--block-math)",
       label: "MATH · LaTeX",
       body: "Attention(Q,K,V) = softmax( QKᵀ / √dₖ ) V",
     },
     code: {
-      color: "var(--block-code)",
       label: "CODE · Python",
       body: "def scaled_dot_product(q, k, v, mask=None):\n    scores = q @ k.transpose(-2,-1) / math.sqrt(d_k)\n    if mask is not None: scores += mask\n    return softmax(scores, -1) @ v",
     },
     paper: {
-      color: "var(--block-paper)",
       label: "PAPER · Vaswani 2017",
       body: '"the dominant sequence transduction models are based on complex recurrent or convolutional neural networks..." — §1',
     },
@@ -308,7 +312,7 @@ function MiniBlock({ kind }: { kind: Exclude<BlockKind, "concept"> }) {
           position: "absolute",
           inset: "0 auto 0 0",
           width: 3,
-          background: meta.color,
+          background: "var(--border-strong)",
         }}
       />
       <div
@@ -323,7 +327,7 @@ function MiniBlock({ kind }: { kind: Exclude<BlockKind, "concept"> }) {
       >
         <span
           style={{
-            color: meta.color,
+            color: "var(--text-muted)",
             fontFamily: "var(--font-mono)",
             letterSpacing: "0.05em",
           }}
@@ -353,271 +357,160 @@ function MiniBlock({ kind }: { kind: Exclude<BlockKind, "concept"> }) {
 
 function LandingPainSolution() {
   return (
-    <section id="product" className="sn-section">
+    <section id="product" className="sn-section sn-reveal">
       <div className="sn-shell">
-        <SectionEyebrow>The Problem</SectionEyebrow>
-        <SectionTitle>
-          笔记越记越多,但
-          <em style={{ color: "var(--text-muted)", fontStyle: "italic" }}>
-            从来没真正&quot;通&quot;过。
-          </em>
-        </SectionTitle>
-        <div className="sn-grid-3" style={{ marginTop: 64 }}>
-          <PainCard
-            before
-            n="01"
-            title="论文堆在 Zotero"
-            desc="读完三遍,公式编号都对不上,推导卡在 Eq. (7) 那一步没人能问。"
-          />
-          <PainCard
-            before
-            n="02"
-            title="代码散在 GitHub"
-            desc="跑通的小 demo 没法关联回它实现的是哪段推导。隔半年回看,都是孤岛。"
-          />
-          <PainCard
-            before
-            n="03"
-            title="笔记孤立在 Notion"
-            desc="文字 + 截图 + 公式图片,搜不到、引不回、不能被他人 cite。"
-          />
-        </div>
-        <div
-          style={{
-            display: "flex",
-            height: 80,
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <svg aria-hidden="true" width="80" height="80" viewBox="0 0 80 80">
-            <path
-              d="M40 8 L40 60 M28 48 L40 60 L52 48"
-              stroke="var(--brand-cyan)"
-              strokeWidth="2"
-              fill="none"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        </div>
-        <div className="sn-grid-3">
-          <PainCard
-            n="01"
-            title="Math ↔ Paper"
-            desc="选中推导某一步,直接 link 回论文 Eq. (7),hover 即可看到对端预览。"
-          />
-          <PainCard
-            n="02"
-            title="Code ↔ Math"
-            desc="代码块标注 implements 关系,跨人引用形成可追踪的知识网络。"
-          />
-          <PainCard
-            n="03"
-            title="Public ↔ Private"
-            desc="一键发布部分内容,被 cite 也只会指向你保留可见的 block。"
-          />
+        <h2 className="m-0 max-w-[1080px] text-[clamp(32px,4vw,40px)] leading-[1.14] font-semibold tracking-normal text-balance [color:var(--text-primary)] [font-family:var(--font-sans)]">
+          读完三遍论文还是想不起来 §3.2 那一步——这不是你的问题，是工具的问题。
+        </h2>
+        <div className="mt-[60px] grid items-center gap-10 lg:grid-cols-[minmax(0,720px)_minmax(320px,1fr)]">
+          <div className="max-w-[720px] text-[18px] leading-[1.7] text-[#D1D5DB]">
+            <p className="m-0">
+              论文堆在 Zotero 里读完就忘。代码散落在 GitHub
+              仓库里，半年回看搜不回是哪一步的推导。笔记孤立在 Notion
+              里，公式截图既无法被检索，也不能被他人引用。
+            </p>
+            <p className="mt-7 mb-0">
+              三个工具中间，永远缺一座桥——Synapse 是这座桥。
+            </p>
+          </div>
+          <ProblemBridgeDiagram />
         </div>
       </div>
     </section>
   );
 }
 
-function PainCard({
-  before = false,
-  n,
-  title,
-  desc,
-}: {
-  before?: boolean;
-  n: string;
-  title: string;
-  desc: string;
-}) {
+function ProblemBridgeDiagram() {
   return (
-    <div
-      className="sn-card"
-      style={{ position: "relative", padding: 24, opacity: before ? 0.65 : 1 }}
+    <svg
+      aria-hidden="true"
+      className="h-auto w-full text-[#F4F4F7]"
+      viewBox="0 0 420 260"
     >
-      {!before ? (
-        <div
-          style={{
-            position: "absolute",
-            top: 0,
-            left: 24,
-            right: 24,
-            height: 1,
-            background: "var(--brand-cyan)",
-          }}
-        />
-      ) : null}
-      <div
-        style={{
-          color: before ? "var(--text-muted)" : "var(--brand-cyan)",
-          fontFamily: "var(--font-mono)",
-          fontSize: 11,
-          letterSpacing: "0.08em",
-        }}
-      >
-        {before ? `BEFORE / ${n}` : `WITH SYNAPSE / ${n}`}
-      </div>
-      <div
-        style={{
-          marginTop: 14,
-          fontSize: 18,
-          fontWeight: 650,
-          letterSpacing: 0,
-        }}
-      >
-        {title}
-      </div>
-      <div
-        style={{
-          marginTop: 10,
-          color: "var(--text-secondary)",
-          fontSize: 13.5,
-          lineHeight: 1.65,
-        }}
-      >
-        {desc}
-      </div>
-    </div>
+      <g fontFamily="Inter, system-ui, sans-serif" fontSize="12">
+        {[
+          ["Zotero", 24, 34],
+          ["GitHub", 24, 106],
+          ["Notion", 24, 178],
+        ].map(([label, x, y]) => (
+          <g key={label}>
+            <rect
+              fill="rgba(255,255,255,0.035)"
+              height="46"
+              rx="6"
+              stroke="rgba(255,255,255,0.16)"
+              width="92"
+              x={x}
+              y={y}
+            />
+            <text
+              fill="rgba(244,244,247,0.72)"
+              x={Number(x) + 18}
+              y={Number(y) + 29}
+            >
+              {label}
+            </text>
+          </g>
+        ))}
+
+        {[
+          "M126 57 C166 57 174 62 204 74",
+          "M126 129 C164 129 176 128 204 126",
+          "M126 201 C166 201 174 190 204 178",
+        ].map((path, index) => (
+          <path
+            d={path}
+            fill="none"
+            key={path}
+            stroke="rgba(255,255,255,0.28)"
+            strokeDasharray="8 9"
+            strokeLinecap="round"
+            strokeWidth="1.4"
+            opacity={index === 1 ? 0.9 : 0.62}
+          />
+        ))}
+
+        <g transform="translate(234 42)">
+          <path
+            d="M74 26 L34 66 L82 106 L124 70 M82 106 L58 156 M82 106 L132 156 M34 66 L18 132"
+            fill="none"
+            stroke="rgba(255,255,255,0.28)"
+            strokeWidth="1.4"
+          />
+          {[
+            ["Paper", 74, 26, 15],
+            ["Math", 34, 66, 13],
+            ["Code", 82, 106, 17],
+            ["Note", 124, 70, 13],
+            ["Quote", 18, 132, 12],
+            ["Run", 58, 156, 12],
+            ["Link", 132, 156, 12],
+          ].map(([label, cx, cy, r]) => (
+            <g key={label}>
+              <circle
+                cx={cx}
+                cy={cy}
+                fill="rgba(255,255,255,0.1)"
+                r={r}
+                stroke="rgba(255,255,255,0.42)"
+                strokeWidth="1.2"
+              />
+              <text
+                fill="rgba(244,244,247,0.82)"
+                fontSize="10"
+                textAnchor="middle"
+                x={cx}
+                y={Number(cy) + Number(r) + 14}
+              >
+                {label}
+              </text>
+            </g>
+          ))}
+        </g>
+      </g>
+    </svg>
   );
 }
 
 function LandingThreeLayers() {
-  const wrapRef = useRef<HTMLDivElement | null>(null);
-  const [hover, setHover] = useState<number | null>(null);
-  const [centers, setCenters] = useState<Array<{
-    x: number;
-    y: number;
-  }> | null>(null);
-
-  useLayoutEffect(() => {
-    if (!wrapRef.current) return;
-
-    const measure = () => {
-      const wrap = wrapRef.current;
-      if (!wrap) return;
-      const wrapBox = wrap.getBoundingClientRect();
-      const cards = wrap.querySelectorAll("[data-layer-card]");
-      const nextCenters: Array<{ x: number; y: number }> = [];
-      cards.forEach((card) => {
-        const box = card.getBoundingClientRect();
-        nextCenters.push({
-          x: box.left - wrapBox.left + box.width / 2,
-          y: box.top - wrapBox.top + box.height / 2,
-        });
-      });
-      setCenters(nextCenters);
-    };
-
-    measure();
-    const observer = new ResizeObserver(measure);
-    observer.observe(wrapRef.current);
-    return () => observer.disconnect();
-  }, []);
-
   return (
-    <section className="sn-section" style={{ overflow: "hidden" }}>
+    <section className="sn-section sn-reveal" style={{ overflow: "hidden" }}>
       <div className="sn-shell">
-        <SectionEyebrow>The Three Layers</SectionEyebrow>
-        <SectionTitle sub="一个 Note 由若干 Block 组成。Math / Code / Paper 三种核心 Block 类型是 Synapse 的原语,任意两块之间可以建立带语义的 Link。">
-          三类 Block,一个语义层。
-        </SectionTitle>
+        <div>
+          <div className="text-[11px] tracking-[0.08em] [color:var(--text-muted)] [font-family:var(--font-mono)]">
+            02 / 结构
+          </div>
+          <h2 className="mt-3 mb-0 max-w-[720px] text-[28px] leading-[1.22] font-semibold tracking-normal [color:var(--text-primary)] [font-family:var(--font-sans)]">
+            三类 Block,一个语义层。
+          </h2>
+          <p className="sn-section-sub">
+            一个 Note 由若干 Block 组成。Math / Code / Paper 三种核心 Block
+            类型是 Synapse 的原语,任意两块之间可以建立带语义的 Link。
+          </p>
+        </div>
 
-        <div ref={wrapRef} style={{ position: "relative", marginTop: 64 }}>
-          <svg
-            aria-hidden="true"
-            style={{
-              position: "absolute",
-              inset: 0,
-              width: "100%",
-              height: "100%",
-              pointerEvents: "none",
-            }}
+        <div style={{ marginTop: 64 }}>
+          <div
+            className="sn-grid-3 sn-reveal sn-reveal-list"
+            style={{ gap: 28 }}
           >
-            <defs>
-              <linearGradient id="layer-link-grad" x1="0" y1="0" x2="1" y2="0">
-                <stop offset="0%" stopColor="var(--brand-cyan)" />
-                <stop offset="55%" stopColor="var(--brand-cyan)" />
-                <stop offset="100%" stopColor="var(--warning)" />
-              </linearGradient>
-              <filter id="layer-glow">
-                <feGaussianBlur stdDeviation="3" result="blur" />
-                <feMerge>
-                  <feMergeNode in="blur" />
-                  <feMergeNode in="SourceGraphic" />
-                </feMerge>
-              </filter>
-            </defs>
-            {hover !== null && centers
-              ? centers.map((from, index) => {
-                  if (index !== hover) return null;
-                  return centers.map((to, targetIndex) => {
-                    if (targetIndex === index) return null;
-                    const dx = to.x - from.x;
-                    const cx = (from.x + to.x) / 2;
-                    const cy = (from.y + to.y) / 2 - Math.abs(dx) * 0.22 - 30;
-                    const d = `M ${from.x} ${from.y} Q ${cx} ${cy} ${to.x} ${to.y}`;
-                    return (
-                      <g
-                        key={`${index}-${targetIndex}`}
-                        style={{ filter: "url(#layer-glow)" }}
-                      >
-                        <path
-                          d={d}
-                          stroke="url(#layer-link-grad)"
-                          strokeWidth="1.8"
-                          fill="none"
-                          strokeDasharray="600"
-                          strokeDashoffset="600"
-                          opacity="0.9"
-                        >
-                          <animate
-                            attributeName="stroke-dashoffset"
-                            from="600"
-                            to="0"
-                            dur="0.8s"
-                            fill="freeze"
-                          />
-                        </path>
-                        <circle r="3.5" fill="white">
-                          <animateMotion
-                            dur="1.6s"
-                            repeatCount="indefinite"
-                            path={d}
-                          />
-                        </circle>
-                      </g>
-                    );
-                  });
-                })
-              : null}
-          </svg>
-
-          <div className="sn-grid-3" style={{ gap: 28 }}>
             <LayerCard
-              index={0}
               kind="math"
               icon="∑"
               label="MathBlock"
               title="LaTeX,按推导步切片"
               desc="每个 \\\\ 即一步,每一步是独立锚点,可被外部 Block 指向。KaTeX 实时渲染。"
               file="attention.tex"
-              setHover={setHover}
             >
               <MathRender />
             </LayerCard>
             <LayerCard
-              index={1}
               kind="code"
               icon="</>"
               label="CodeBlock"
               title="可运行代码 + 环境"
               desc="多语言,一键复制环境到剪贴板。implements 标注指向它实现的推导步骤。"
               file="attention.py"
-              setHover={setHover}
             >
               <pre style={snippetStyle}>
                 {`def attention(Q, K, V, mask=None):
@@ -628,14 +521,12 @@ function LandingThreeLayers() {
               </pre>
             </LayerCard>
             <LayerCard
-              index={2}
               kind="paper"
               icon="¶"
               label="PaperBlock"
               title="规范化论文引用"
               desc="粘贴 arXiv 链接自动抓取元数据,划词建立 quote + anchor,全站去重。"
               file="1706.03762"
-              setHover={setHover}
             >
               <pre
                 style={{
@@ -655,34 +546,6 @@ or convolutional neural networks..."  — §1`}
             </LayerCard>
           </div>
         </div>
-
-        <div
-          style={{
-            display: "flex",
-            flexWrap: "wrap",
-            gap: 12,
-            alignItems: "center",
-            justifyContent: "center",
-            marginTop: 32,
-            color: "var(--text-muted)",
-            fontSize: 12,
-          }}
-        >
-          <span>Hover 任意一张卡片查看跨块 Link 效果</span>
-          <span style={{ opacity: 0.4 }}>·</span>
-          <span>5 种 relation 类型:</span>
-          {[
-            "implements",
-            "derives_from",
-            "cites",
-            "contradicts",
-            "extends",
-          ].map((relation) => (
-            <code className="sn-muted-code" key={relation}>
-              {relation}
-            </code>
-          ))}
-        </div>
       </div>
     </section>
   );
@@ -699,33 +562,28 @@ const snippetStyle = {
 } as const;
 
 function LayerCard({
-  index,
   kind,
   icon,
   label,
   title,
   desc,
   file,
-  setHover,
   children,
 }: {
-  index: number;
   kind: Exclude<BlockKind, "concept">;
   icon: string;
   label: string;
   title: string;
   desc: string;
   file: string;
-  setHover: (value: number | null) => void;
   children: React.ReactNode;
 }) {
-  const color = `var(--block-${kind})`;
+  const color = blockColor(kind);
   return (
     <article
       data-layer-card
+      data-kind={kind}
       className="sn-card"
-      onMouseEnter={() => setHover(index)}
-      onMouseLeave={() => setHover(null)}
       style={{
         position: "relative",
         overflow: "hidden",
@@ -754,7 +612,7 @@ function LayerCard({
             justifyContent: "center",
             border: `1px solid ${color}`,
             borderRadius: 8,
-            background: `linear-gradient(135deg, ${color}, transparent 80%)`,
+            background: "rgba(255,255,255,.04)",
             color,
             fontFamily: "var(--font-mono)",
             fontWeight: 700,
@@ -875,15 +733,9 @@ function LandingGraphDemo() {
   const graph = useAttentionGraph();
 
   return (
-    <section id="graph" className="sn-section">
+    <section id="graph" className="sn-section sn-reveal">
       <div className="sn-shell">
-        <SectionEyebrow>Live Knowledge Graph</SectionEyebrow>
-        <SectionTitle sub="拖动节点观察一个真实学习历程的拓扑。颜色区分 Math / Code / Paper / 关键概念,边代表显式建立的 Link。">
-          每个 Note 是节点,
-          <br />
-          每次&quot;通了&quot;都是一条边。
-        </SectionTitle>
-        <div className="sn-graph-layout" style={{ marginTop: 56 }}>
+        <div className="sn-graph-layout">
           <div
             className="sn-card"
             style={{ position: "relative", overflow: "hidden", padding: 0 }}
@@ -908,7 +760,7 @@ function LandingGraphDemo() {
               >
                 <span
                   style={{
-                    color: "var(--brand-cyan)",
+                    color: "#EF4444",
                     fontFamily: "var(--font-mono)",
                     fontSize: 11,
                   }}
@@ -917,37 +769,13 @@ function LandingGraphDemo() {
                 </span>
                 <span>u/zhe-li · Transformer 精读 · 28 nodes · 41 edges</span>
               </div>
-              <div style={{ display: "flex", gap: 6 }}>
-                {["2D", "3D", "Tags"].map((item, index) => (
-                  <button
-                    key={item}
-                    type="button"
-                    style={{
-                      height: 26,
-                      padding: "0 10px",
-                      border: "1px solid var(--border-subtle)",
-                      borderRadius: 6,
-                      background:
-                        index === 0 ? "rgba(77,208,255,.08)" : "transparent",
-                      color:
-                        index === 0
-                          ? "var(--brand-cyan)"
-                          : "var(--text-secondary)",
-                      cursor: "pointer",
-                      fontSize: 11,
-                    }}
-                  >
-                    {item}
-                  </button>
-                ))}
-              </div>
             </div>
             <div
               style={{
                 overflowX: "auto",
                 padding: 16,
                 background:
-                  "radial-gradient(ellipse at center, rgba(77,208,255,.04), transparent 70%)",
+                  "radial-gradient(ellipse at center, rgba(255,255,255,.035), transparent 70%)",
               }}
             >
               <ForceGraph
@@ -964,18 +792,18 @@ function LandingGraphDemo() {
             <SideList
               title="Top hubs"
               rows={[
-                ["Scaled Dot-Product", "12 edges"],
-                ["Multi-Head Attention", "9 edges"],
-                ["Positional Encoding", "7 edges"],
-                ["LayerNorm", "5 edges"],
+                ["Scaled Dot-Product", "12 edges", "2h ago"],
+                ["Multi-Head Attention", "9 edges", "5h ago"],
+                ["Positional Encoding", "7 edges", "1d ago"],
+                ["LayerNorm", "5 edges", "2d ago"],
               ]}
             />
             <SideList
               title="Recent Links"
               rows={[
-                ["Multi-Head → Q,K,V 投影", "implements"],
-                ["Softmax → log-sum-exp 稳定", "extends"],
-                ["MLA (DeepSeek) → Attention 原文", "cites"],
+                ["Multi-Head → Q,K,V 投影", "implements", "18m ago"],
+                ["Softmax → log-sum-exp 稳定", "extends", "47m ago"],
+                ["MLA (DeepSeek) → Attention 原文", "cites", "3h ago"],
               ]}
               accent
             />
@@ -988,10 +816,10 @@ function LandingGraphDemo() {
 
 function GraphLegend() {
   const items: Array<[string, string]> = [
-    ["Math", "var(--block-math)"],
-    ["Code", "var(--block-code)"],
-    ["Paper", "var(--block-paper)"],
-    ["Concept", "var(--brand-cyan)"],
+    ["Math", "var(--color-math)"],
+    ["Code", "var(--color-code)"],
+    ["Paper", "var(--color-paper)"],
+    ["Concept", "var(--color-concept)"],
   ];
   return (
     <div className="sn-card" style={{ padding: 18 }}>
@@ -1023,7 +851,6 @@ function GraphLegend() {
                 height: 10,
                 borderRadius: "50%",
                 background: color,
-                boxShadow: `0 0 12px ${color}`,
               }}
             />
             {name}
@@ -1040,7 +867,7 @@ function SideList({
   accent = false,
 }: {
   title: string;
-  rows: string[][];
+  rows: Array<[string, string, string]>;
   accent?: boolean;
 }) {
   return (
@@ -1055,7 +882,7 @@ function SideList({
       >
         {title}
       </div>
-      {rows.map(([left, right]) => (
+      {rows.map(([left, right, time]) => (
         <div
           key={left}
           style={{
@@ -1075,12 +902,13 @@ function SideList({
             <span
               className="sn-num"
               style={{
-                color: accent ? "var(--brand-cyan)" : "var(--text-muted)",
+                color: "var(--text-muted)",
                 fontFamily: accent ? "var(--font-mono)" : undefined,
                 fontSize: accent ? 10 : undefined,
               }}
             >
               {right}
+              <span style={{ color: "#6B7280", fontSize: 11 }}> · {time}</span>
             </span>
           </div>
         </div>
@@ -1090,67 +918,80 @@ function SideList({
 }
 
 function LandingCommunity() {
-  const cards = [
+  const featured = {
+    handle: "aria-chen",
+    name: "Aria Chen",
+    quote:
+      "我花了三天才搞懂 RoPE 的相对位置编码。把 Su 的原论文、苏剑林的中文推导、和 LLaMA 的 rotary_emb.py 拴在同一个节点上之后，它就再也没跑掉过。",
+    meta: "@aria-chen · 位置编码精读 · 18 nodes · 3 天前",
+    avatarColor: "var(--color-paper)",
+  };
+
+  const tracks: Array<{
+    handle: string;
+    name: string;
+    title: string;
+    avatarColor: string;
+    nodes: Array<{ kind: CommunityNodeKind; title: string }>;
+  }> = [
     {
       handle: "zhe-li",
       name: "李哲",
-      title: "PPO from Bellman to Implementation",
-      meta: "24 Notes · 12 Tracks",
-      tags: ["RL", "Math"],
-      color: "#4DD0FF",
-    },
-    {
-      handle: "aria-chen",
-      name: "Aria Chen",
-      title: "扩散模型推导精读 · DDPM 到 DDIM",
-      meta: "18 Notes · 6 Tracks",
-      tags: ["Diffusion"],
-      color: "#60A5FA",
+      title: "RoPE → ALiBi → YaRN：位置编码三连",
+      avatarColor: "var(--color-paper)",
+      nodes: [
+        { kind: "Paper", title: "RoFormer §2.1: rotary position embedding" },
+        { kind: "Math", title: "复数旋转到相对位移内积" },
+        { kind: "Code", title: "apply_rotary_pos_emb 的 broadcast 维度" },
+      ],
     },
     {
       handle: "qixin",
       name: "齐欣",
-      title: "Attention Is All You Need 逐节拆解",
-      meta: "31 Notes · 8 Tracks",
-      tags: ["Transformer", "Paper"],
-      color: "#E07856",
-    },
-    {
-      handle: "maxwell-tu",
-      name: "Maxwell Tu",
-      title: "GRPO 复现:从原理到 8x H100",
-      meta: "12 Notes · 3 Tracks",
-      tags: ["RLHF", "2025"],
-      color: "#6EE7B7",
+      title: "从 PPO 的 importance ratio 到 GRPO 砍掉 critic",
+      avatarColor: "var(--color-math)",
+      nodes: [
+        { kind: "Paper", title: "DeepSeekMath Appendix: GRPO objective" },
+        { kind: "Math", title: "ratio clipping 与 KL 惩罚项" },
+        { kind: "Code", title: "group_advantages_without_value_head.py" },
+      ],
     },
     {
       handle: "lin-jiayi",
       name: "林佳怡",
-      title: "CS-MoE 路由设计实验日志",
-      meta: "9 Notes · 2 Tracks",
-      tags: ["MoE"],
-      color: "#FBBF24",
+      title: "Diffusion 三种参数化：ε / x₀ / v 各自的代码差异",
+      avatarColor: "var(--color-code)",
+      nodes: [
+        { kind: "Paper", title: "Progressive Distillation §2.4 v-prediction" },
+        { kind: "Math", title: "ε-pred 与 x₀-pred 的互换" },
+        { kind: "Code", title: "scheduler.step(): prediction_type switch" },
+      ],
     },
     {
-      handle: "shubham-r",
-      name: "Shubham R.",
-      title: "Linear Algebra Done Right · 习题集",
-      meta: "47 Notes · 4 Tracks",
-      tags: ["Math", "基础"],
-      color: "#93C5FD",
+      handle: "maxwell-tu",
+      name: "Maxwell Tu",
+      title: "FlashAttention 的 IO-aware 证明怎么落到 kernel",
+      avatarColor: "var(--color-concept)",
+      nodes: [
+        { kind: "Paper", title: "FlashAttention §3: tiling strategy" },
+        { kind: "Math", title: "HBM 访问次数的上界" },
+        { kind: "Code", title: "flash_fwd_kernel.cu 的 block loop" },
+      ],
     },
   ];
 
   return (
-    <section id="community" className="sn-section">
+    <section id="community" className="sn-section sn-reveal">
       <div className="sn-shell">
-        <SectionEyebrow>Community</SectionEyebrow>
-        <SectionTitle sub="每个公开的 Track 都是一份可追踪、可派生、可被 cite 的学习历程。点开任意 Track 看到从论文到代码的完整跳转链路。">
-          看别人是怎么&quot;想通&quot;的。
-        </SectionTitle>
-        <div className="sn-grid-3" style={{ marginTop: 56, gap: 20 }}>
-          {cards.map((card) => (
-            <CommunityCard key={card.handle} card={card} />
+        {/* §2 社区 label 改为“数字 / 中文”格式。 */}
+        <div className="text-[11px] tracking-[0.05em] text-[#9CA3AF] [font-family:var(--font-mono)]">
+          03 / 社区 · 最近一周 23 个新 Track
+        </div>
+
+        <div className="sn-reveal sn-reveal-list mt-6 grid grid-cols-1 gap-4 lg:grid-cols-2">
+          <FeaturedCommunityCard item={featured} />
+          {tracks.map((track) => (
+            <CommunityTrackCard key={track.handle} track={track} />
           ))}
         </div>
       </div>
@@ -1158,319 +999,218 @@ function LandingCommunity() {
   );
 }
 
-function CommunityCard({
-  card,
+function FeaturedCommunityCard({
+  item,
 }: {
-  card: {
+  item: {
     handle: string;
     name: string;
-    title: string;
+    quote: string;
     meta: string;
-    tags: string[];
-    color: string;
+    avatarColor: string;
   };
 }) {
   return (
-    <article
-      style={{
-        position: "relative",
-        overflow: "hidden",
-        borderTop: "1px solid var(--border-subtle)",
-        padding: "18px 0 24px",
-      }}
-    >
-      <div
-        style={{
-          position: "relative",
-          height: 76,
-          overflow: "hidden",
-          background: `radial-gradient(ellipse at 30% 100%, ${card.color}22, transparent 64%)`,
-        }}
+    <article className="relative overflow-hidden rounded-md border border-[#1F1F1F] bg-[#0A0A0A] p-6 transition-colors hover:border-[#2F2F2F] lg:col-span-2">
+      <a
+        href="/app"
+        className="absolute top-5 right-5 text-xs font-medium [color:var(--text-secondary)] transition-colors hover:[color:var(--text-primary)]"
       >
-        <MiniGraphTexture color={card.color} />
-      </div>
-      <div style={{ paddingTop: 18 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <div
-            style={{
-              display: "flex",
-              width: 30,
-              height: 30,
-              alignItems: "center",
-              justifyContent: "center",
-              border: "1px solid var(--border-strong)",
-              borderRadius: "50%",
-              background: card.color,
-              color: "#fff",
-              fontSize: 12,
-              fontWeight: 650,
-            }}
-          >
-            {card.name[0]}
-          </div>
-          <div>
-            <div style={{ fontSize: 12.5, fontWeight: 550 }}>{card.name}</div>
-            <div
-              style={{
-                color: "var(--text-muted)",
-                fontFamily: "var(--font-mono)",
-                fontSize: 10.5,
-              }}
-            >
-              @{card.handle}
+        查看完整 Track →
+      </a>
+
+      <div className="grid gap-6 pr-0 md:grid-cols-[220px_1fr] md:pr-36">
+        <div className="flex items-center gap-4 md:block">
+          <CommunityAvatar
+            color={item.avatarColor}
+            name={item.name}
+            size="lg"
+          />
+          <div className="md:mt-4">
+            <div className="text-base font-medium [color:var(--text-primary)]">
+              {item.name}
+            </div>
+            <div className="mt-1 text-[11px] [color:var(--text-muted)] [font-family:var(--font-mono)]">
+              @{item.handle}
             </div>
           </div>
-          <button
-            type="button"
-            style={{
-              height: 26,
-              marginLeft: "auto",
-              padding: "0 12px",
-              border: "1px solid var(--border-strong)",
-              borderRadius: 999,
-              background: "transparent",
-              color: "var(--text-primary)",
-              cursor: "pointer",
-              fontSize: 11,
-            }}
-          >
-            + Follow
-          </button>
         </div>
-        <h3
-          style={{
-            margin: "14px 0 0",
-            fontSize: 15,
-            fontWeight: 650,
-            lineHeight: 1.35,
-            letterSpacing: 0,
-          }}
-        >
-          {card.title}
-        </h3>
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            gap: 10,
-            marginTop: 12,
-            color: "var(--text-muted)",
-            fontSize: 11,
-          }}
-        >
-          <span>{card.meta}</span>
-          <span style={{ display: "flex", gap: 6 }}>
-            {card.tags.map((tag) => (
-              <code
-                className="sn-muted-code"
-                key={tag}
-                style={{ fontSize: 10 }}
-              >
-                {tag}
-              </code>
-            ))}
-          </span>
-        </div>
+
+        <blockquote className="m-0 text-[clamp(18px,2.1vw,25px)] leading-[1.48] font-medium tracking-normal [color:var(--text-primary)] [font-family:var(--font-sans)]">
+          “{item.quote}”
+        </blockquote>
+      </div>
+
+      <div className="mt-6 border-t border-[#1F1F1F] pt-4 text-xs [color:var(--text-muted)]">
+        {item.meta}
       </div>
     </article>
   );
 }
 
-function MiniGraphTexture({ color }: { color: string }) {
-  const points = [
-    [22, 50],
-    [54, 32],
-    [86, 60],
-    [118, 28],
-    [148, 64],
-    [180, 36],
-    [212, 58],
-    [244, 30],
-    [276, 56],
-    [306, 38],
-    [70, 76],
-    [134, 80],
-    [200, 78],
-    [258, 76],
-  ];
-  const edges = [
-    [0, 1],
-    [1, 2],
-    [2, 3],
-    [3, 4],
-    [4, 5],
-    [5, 6],
-    [6, 7],
-    [7, 8],
-    [8, 9],
-    [0, 10],
-    [2, 10],
-    [3, 11],
-    [5, 11],
-    [6, 12],
-    [8, 12],
-    [8, 13],
-    [9, 13],
-  ];
-
+function CommunityTrackCard({
+  track,
+}: {
+  track: {
+    handle: string;
+    name: string;
+    title: string;
+    avatarColor: string;
+    nodes: Array<{ kind: CommunityNodeKind; title: string }>;
+  };
+}) {
   return (
-    <svg
-      aria-hidden="true"
-      viewBox="0 0 340 92"
-      style={{ width: "100%", height: "100%" }}
-    >
-      {edges.map(([a, b], index) => (
-        <line
-          key={index}
-          x1={points[a][0]}
-          y1={points[a][1]}
-          x2={points[b][0]}
-          y2={points[b][1]}
-          stroke={color}
-          strokeOpacity="0.3"
-          strokeWidth="1"
-        />
-      ))}
-      {points.map(([x, y], index) => (
-        <circle
-          key={`${x}-${y}`}
-          cx={x}
-          cy={y}
-          r={index % 4 === 0 ? 3 : 2}
-          fill={color}
-          fillOpacity={index % 4 === 0 ? 0.9 : 0.6}
-        />
-      ))}
-    </svg>
+    <article className="group flex min-h-[272px] flex-col rounded-md border border-[#1F1F1F] bg-[#111111] p-5 transition-colors hover:border-[#2F2F2F]">
+      <h3 className="m-0 text-lg leading-snug font-medium tracking-normal [color:var(--text-primary)]">
+        {track.title}
+      </h3>
+
+      <div className="mt-5 flex flex-col gap-0">
+        {track.nodes.map((node) => (
+          <div
+            key={`${node.kind}-${node.title}`}
+            className="grid grid-cols-[74px_1fr] gap-3 border-t border-[#1F1F1F] py-2.5 text-sm first:border-t-0 first:pt-0"
+          >
+            <div className="flex items-center gap-2 text-[11px] [color:var(--text-muted)] [font-family:var(--font-mono)]">
+              <span className="inline-flex h-5 w-5 items-center justify-center rounded border border-[#242424] bg-[#161616] text-[10px] [color:var(--text-secondary)]">
+                {communityNodeIcon(node.kind)}
+              </span>
+              {node.kind}
+            </div>
+            <div className="min-w-0 leading-relaxed [color:var(--text-secondary)]">
+              {node.title}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="mt-auto flex items-center gap-3 border-t border-[#1F1F1F] pt-4">
+        <CommunityAvatar color={track.avatarColor} name={track.name} />
+        <div className="min-w-0 flex-1">
+          <div className="truncate text-xs font-medium [color:var(--text-primary)]">
+            {track.name}
+          </div>
+          <div className="truncate text-[10.5px] [color:var(--text-muted)] [font-family:var(--font-mono)]">
+            @{track.handle}
+          </div>
+        </div>
+        <button
+          type="button"
+          className="pointer-events-none h-7 rounded border border-[#2A2A2A] bg-transparent px-3 text-[11px] font-medium opacity-0 [color:var(--text-secondary)] transition-all group-hover:pointer-events-auto group-hover:opacity-100 hover:border-[#3A3A3A] hover:[color:var(--text-primary)]"
+        >
+          Follow
+        </button>
+      </div>
+    </article>
   );
 }
 
+function CommunityAvatar({
+  color = "#1A1A1A",
+  name,
+  size = "sm",
+}: {
+  color?: string;
+  name: string;
+  size?: "sm" | "lg";
+}) {
+  const isLarge = size === "lg";
+
+  return (
+    <div
+      className={[
+        "flex shrink-0 items-center justify-center rounded-md border border-[#2A2A2A] bg-[#1A1A1A] font-semibold text-white",
+        isLarge ? "h-16 w-16 text-xl" : "h-8 w-8 text-xs",
+      ].join(" ")}
+      style={{ background: color }}
+    >
+      {name[0]}
+    </div>
+  );
+}
+
+function communityNodeIcon(kind: CommunityNodeKind) {
+  return {
+    Math: "∑",
+    Code: "</>",
+    Paper: "¶",
+  }[kind];
+}
+
 function LandingWorkflow() {
-  const steps = [
+  const events = [
     {
-      keyword: "01 · Read",
-      title: "读论文",
+      time: "09:41",
+      label: "PaperBlock",
+      title: "导入 Vaswani 2017",
       kind: "paper" as BlockKind,
-      desc: "粘贴 arXiv 链接,自动抓取元数据并去重。划词建立 quote + 公式锚点。",
-      meta: ["arxiv:1706.03762", "Vaswani 2017", "6 quotes"],
+      detail:
+        "Attention Is All You Need 进入 Transformer 精读，标题、作者、年份自动归一。",
+      meta: ["arxiv:1706.03762", "6 highlights", "23 quotes"],
     },
     {
-      keyword: "02 · Derive",
-      title: "写推导",
+      time: "10:08",
+      label: "MathBlock",
+      title: "固定 §3.2 的 scale 推导",
       kind: "math" as BlockKind,
-      desc: "LaTeX 编辑器实时 KaTeX 预览。按 \\\\ 切分推导步,每一步都可被外部 Link 指向。",
-      meta: ["KaTeX", "12 steps", "3 anchors"],
+      detail: "把 QK^T / √d_k 拆成 12 个推导步，其中 3 步被标成可引用 anchor。",
+      meta: ["12 steps", "KaTeX rendered", "3 anchors"],
     },
     {
-      keyword: "03 · Implement",
-      title: "写代码",
+      time: "10:36",
+      label: "CodeBlock",
+      title: "提交 attention.py 片段",
       kind: "code" as BlockKind,
-      desc: "CodeMirror 6 多语言;一键复制环境到剪贴板。implements 链回推导第 N 步。",
-      meta: ["python · torch", "78 LOC", "implements: §3.2(7)"],
+      detail:
+        "78 行 PyTorch 代码通过 smoke test，implements 指向 MathBlock #scale。",
+      meta: ["78 LOC", "python", "1 test"],
     },
     {
-      keyword: "04 · Publish",
-      title: "发布并被引",
+      time: "10:52",
+      label: "Track",
+      title: "发布 Transformer 精读",
       kind: "concept" as BlockKind,
-      desc: "切换 visibility 至 public,触发 embedding worker,自动出现在相关 Note 的推荐位。",
-      meta: ["public", "+ embedding", "2 hops away from PPO"],
+      detail:
+        "Track 切换为 public，embedding worker 完成索引，并发现 2 条 incoming cites。",
+      meta: ["public", "embedded", "2 incoming cites"],
     },
   ];
 
   return (
-    <section id="workflow" className="sn-section">
+    <section id="workflow" className="sn-section sn-section-quiet sn-reveal">
       <div className="sn-shell">
-        <SectionEyebrow>How it works</SectionEyebrow>
-        <SectionTitle sub="从一篇论文到被社区引用,一条线走完。每一步留下的不只是文字,而是结构化的、可被检索的、可被打通的 Block。">
-          四步,从论文到被引用。
-        </SectionTitle>
-        <div
-          className="sn-grid-4"
-          style={{ position: "relative", marginTop: 56 }}
-        >
-          <div
-            style={{
-              position: "absolute",
-              top: 60,
-              left: "12.5%",
-              right: "12.5%",
-              height: 1,
-              background:
-                "linear-gradient(90deg, transparent, var(--brand-cyan) 30%, var(--warning) 70%, transparent)",
-            }}
-          />
-          {steps.map((step, index) => (
-            <article
-              key={step.keyword}
-              className="sn-card"
-              style={{ position: "relative", padding: 22 }}
-            >
+        <div className="sn-workflow-head">
+          <div>
+            <SectionEyebrow>04 / 使用流</SectionEyebrow>
+            <h2 className="sn-section-title sn-section-title-small">
+              一条 Track 是这样长出来的。
+            </h2>
+          </div>
+          <p>
+            不把步骤包装成营销流程，只保留产品里会留下的真实事件：导入、锚定、实现、发布。
+          </p>
+        </div>
+
+        <div className="sn-workflow-log sn-reveal sn-reveal-list">
+          {events.map((event) => (
+            <article key={event.time} className="sn-workflow-event">
+              <div className="sn-workflow-time">{event.time}</div>
               <div
-                style={{
-                  position: "absolute",
-                  top: -16,
-                  left: 22,
-                  display: "flex",
-                  width: 32,
-                  height: 32,
-                  alignItems: "center",
-                  justifyContent: "center",
-                  border: `1.5px solid ${blockColor(step.kind)}`,
-                  borderRadius: "50%",
-                  background: "var(--bg-base)",
-                  color: blockColor(step.kind),
-                  fontFamily: "var(--font-mono)",
-                  fontSize: 11,
-                }}
-              >
-                {String(index + 1).padStart(2, "0")}
-              </div>
-              <div
-                style={{
-                  marginTop: 14,
-                  color: "var(--text-muted)",
-                  fontFamily: "var(--font-mono)",
-                  fontSize: 11,
-                  letterSpacing: "0.06em",
-                }}
-              >
-                {step.keyword}
-              </div>
-              <h3
-                style={{
-                  margin: "6px 0 0",
-                  fontSize: 19,
-                  fontWeight: 650,
-                  letterSpacing: 0,
-                }}
-              >
-                {step.title}
-              </h3>
-              <p
-                style={{
-                  margin: "10px 0 0",
-                  color: "var(--text-secondary)",
-                  fontSize: 13,
-                  lineHeight: 1.6,
-                }}
-              >
-                {step.desc}
-              </p>
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: 4,
-                  marginTop: 16,
-                  color: "var(--text-muted)",
-                  fontFamily: "var(--font-mono)",
-                  fontSize: 10.5,
-                }}
-              >
-                {step.meta.map((item) => (
-                  <span key={item}>→ {item}</span>
-                ))}
+                className="sn-workflow-dot"
+                style={{ background: blockColor(event.kind) }}
+              />
+              <div className="sn-workflow-body">
+                <div className="sn-workflow-label">{event.label}</div>
+                <h3>{event.title}</h3>
+                <p>{event.detail}</p>
+                <div className="sn-workflow-meta">
+                  {event.meta.map((item, index) => (
+                    <span key={item}>
+                      {index > 0 ? "· " : ""}
+                      {item}
+                    </span>
+                  ))}
+                </div>
               </div>
             </article>
           ))}
@@ -1497,7 +1237,7 @@ function LandingPricing() {
     {
       name: "Pro",
       price: "¥39",
-      sub: "/月 · 即将上线",
+      sub: "/月 · waitlist",
       feats: [
         "无限 Track",
         "embedding 推荐",
@@ -1507,7 +1247,6 @@ function LandingPricing() {
       ],
       cta: "加入等待列表",
       highlight: true,
-      badge: "Coming Soon",
     },
     {
       name: "Team",
@@ -1525,40 +1264,37 @@ function LandingPricing() {
   ];
 
   return (
-    <section id="pricing" className="sn-section">
+    <section id="pricing" className="sn-section sn-section-quiet sn-reveal">
       <div className="sn-shell">
-        <SectionEyebrow>Pricing</SectionEyebrow>
-        <SectionTitle sub="个人学习永远免费。Pro 加入向量推荐与导出能力。团队版面向高校实验室与企业训练团队。">
-          为认真学习的人定价。
-        </SectionTitle>
-        <div className="sn-grid-3" style={{ marginTop: 56, gap: 20 }}>
+        <div className="sn-quiet-heading">
+          <SectionEyebrow>05 / 账户</SectionEyebrow>
+          <h2 className="sn-section-title sn-section-title-small">
+            Beta 期间的账户规则。
+          </h2>
+          <p>
+            免费层先保证能长期使用；Pro 和 Team
+            只把更重的导出、协作和部署能力放进去。
+          </p>
+        </div>
+        <div
+          className="sn-grid-3 sn-reveal sn-reveal-list"
+          style={{ marginTop: 40, gap: 16 }}
+        >
           {plans.map((plan) => (
             <article
               key={plan.name}
-              className="sn-card"
+              className="sn-card sn-pricing-card"
               style={{
                 position: "relative",
-                borderColor: plan.highlight
-                  ? "var(--brand-cyan)"
-                  : "var(--border-subtle)",
-                padding: 28,
+                borderColor: plan.highlight ? "#3F3F3F" : undefined,
+                borderWidth: plan.highlight ? 2 : undefined,
+                background: plan.highlight ? "#111111" : undefined,
               }}
             >
-              {plan.badge ? (
-                <div
-                  style={{
-                    position: "absolute",
-                    top: 16,
-                    right: 16,
-                    padding: "2px 8px",
-                    borderRadius: 999,
-                    background: "var(--brand-cyan)",
-                    color: "#fff",
-                    fontFamily: "var(--font-mono)",
-                    fontSize: 10,
-                  }}
-                >
-                  {plan.badge}
+              {/* §5.a Pro 卡片改为推荐态，删除 Coming Soon 标签。 */}
+              {plan.highlight ? (
+                <div className="mb-5 inline-flex rounded bg-[#1F1F1F] px-3 py-1.5 text-[11px] font-medium text-white">
+                  最适合工程师 / 研究生
                 </div>
               ) : null}
               <div style={{ fontSize: 14, fontWeight: 650, letterSpacing: 0 }}>
@@ -1566,9 +1302,9 @@ function LandingPricing() {
               </div>
               <div
                 style={{
-                  marginTop: 14,
+                  marginTop: 12,
                   fontFamily: "var(--font-display)",
-                  fontSize: 40,
+                  fontSize: 32,
                   fontWeight: 500,
                   letterSpacing: 0,
                 }}
@@ -1578,10 +1314,15 @@ function LandingPricing() {
               <div style={{ color: "var(--text-muted)", fontSize: 12 }}>
                 {plan.sub}
               </div>
+              {/* §5.b / §5.c / §5.d 三个 CTA 高度统一，Pro 实心，Free/Team outline。 */}
               <a
-                className={`sn-btn ${plan.highlight ? "sn-btn-dark" : "sn-btn-glass"}`}
+                className={[
+                  "mt-5 flex h-10 w-full items-center justify-center rounded-[8px] text-[13px] font-medium transition-colors",
+                  plan.highlight
+                    ? "bg-[#0A0A0A] text-white hover:bg-[#1F1F1F]"
+                    : "border border-[#3F3F3F] text-white hover:bg-[#1F1F1F]",
+                ].join(" ")}
                 href="#faq"
-                style={{ width: "100%", marginTop: 22 }}
               >
                 {plan.cta}
               </a>
@@ -1590,7 +1331,7 @@ function LandingPricing() {
                   display: "flex",
                   flexDirection: "column",
                   gap: 10,
-                  margin: "22px 0 0",
+                  margin: "20px 0 0",
                   padding: 0,
                   listStyle: "none",
                 }}
@@ -1605,7 +1346,7 @@ function LandingPricing() {
                       fontSize: 13,
                     }}
                   >
-                    <span style={{ color: "var(--brand-cyan)" }}>✓</span>
+                    <span style={{ color: "var(--text-muted)" }}>✓</span>
                     {feature}
                   </li>
                 ))}
@@ -1619,37 +1360,61 @@ function LandingPricing() {
 }
 
 function LandingFAQ() {
-  const items = [
+  const items: Array<[string, React.ReactNode]> = [
     [
-      "Synapse 和 Notion / Obsidian 的区别?",
-      "它们是通用笔记;Synapse 是 AI 学习专属的语义层:Math/Code/Paper 三种原语 + 一等公民的 Link + embedding 推荐 + 公开社区图谱。结构化优先于自由排版。",
+      "Synapse 和 Notion / Obsidian 的区别？",
+      <>
+        <p style={{ margin: 0 }}>
+          它们是通用笔记，Synapse 是 AI 学习专属的语义层。
+        </p>
+        <p style={{ margin: "12px 0 0" }}>
+          区别在三件事：Math / Code / Paper 三种原生 block；Link
+          是一等公民，能跨人跨笔记建立；公开社区里的 Track 可以被
+          cite。结构化优先于自由排版。
+        </p>
+      </>,
     ],
     [
-      "可以保留隐私吗?",
-      "当然。每个 Note / Track 有三档可见度 (private / unlisted / public),被引也只会指向你保留可见的 Block。",
+      "可以保留隐私吗？",
+      "当然。每个 Note / Track 有三档可见度 (private / unlisted / public),引用也只会指向你保留可见的 Block。",
     ],
     [
-      "代码会在服务器上跑吗?",
+      "代码会在服务器上跑吗？",
       "MVP 阶段不在服务器上执行用户代码。我们提供「一键复制环境」(requirements.txt / go.mod),让你本地可复现。",
     ],
     [
-      "支持中文公式 / 注释吗?",
+      "支持中文公式 / 注释吗？",
       "全栈支持。KaTeX 渲染、CodeMirror 编辑、评论 Markdown 均覆盖中文。中文标题用 HarmonyOS Sans SC / PingFang SC。",
     ],
     [
-      "有 API / 数据导出吗?",
+      "有 API / 数据导出吗？",
       "Pro 版本提供 JSON / Markdown 全量导出。注销账户后,数据软删 30 天后清理。",
+    ],
+    [
+      "数据存在哪里？我可以导出吗？",
+      "数据默认存放在 Synapse 托管的数据库与对象存储中。Free 层可以导出单个 Track，Pro 会提供 JSON / Markdown 全量导出。",
+    ],
+    [
+      "支持哪些论文来源？arXiv / OpenReview / 自己的 PDF？",
+      "MVP 优先支持 arXiv 元数据和本地 PDF 上传；OpenReview 会按 Track 引用需求接入，用户自己的 PDF 可以手动补全标题、作者和年份。",
+    ],
+    [
+      "能和 Zotero / Obsidian 互通吗？",
+      "会优先支持 Zotero 条目导入和 Markdown 导出。Obsidian 双向同步不放在 MVP，但导出的 Markdown 会保留 block id 与 link 关系。",
     ],
   ];
   const [open, setOpen] = useState(0);
 
   return (
-    <section id="faq" className="sn-section">
-      <div className="sn-shell" style={{ maxWidth: 880 }}>
-        <SectionEyebrow>FAQ</SectionEyebrow>
-        <SectionTitle>常见问题</SectionTitle>
+    <section id="faq" className="sn-section sn-section-quiet sn-reveal">
+      <div className="sn-shell" style={{ maxWidth: 800 }}>
+        <div className="sn-quiet-heading">
+          <SectionEyebrow>06 / 支持</SectionEyebrow>
+          <h2 className="sn-section-title sn-section-title-small">问题</h2>
+        </div>
         <div
-          style={{ marginTop: 48, borderTop: "1px solid var(--border-subtle)" }}
+          className="sn-faq-panel"
+          style={{ marginTop: 28, borderTop: "1px solid var(--border-subtle)" }}
         >
           {items.map(([question, answer], index) => (
             <div
@@ -1664,12 +1429,12 @@ function LandingFAQ() {
                   width: "100%",
                   alignItems: "center",
                   justifyContent: "space-between",
-                  padding: "20px 4px",
+                  padding: "16px 4px",
                   background: "transparent",
                   color: "var(--text-primary)",
                   cursor: "pointer",
-                  fontSize: 16,
-                  fontWeight: 550,
+                  fontSize: 15,
+                  fontWeight: 500,
                   textAlign: "left",
                 }}
               >
@@ -1688,9 +1453,9 @@ function LandingFAQ() {
               {open === index ? (
                 <div
                   style={{
-                    padding: "0 4px 20px",
+                    padding: "0 4px 18px",
                     color: "var(--text-secondary)",
-                    fontSize: 14,
+                    fontSize: 13.5,
                     lineHeight: 1.7,
                   }}
                 >
@@ -1705,77 +1470,121 @@ function LandingFAQ() {
   );
 }
 
+function LandingFinalCTA() {
+  return (
+    <section className="sn-reveal py-[120px]">
+      <div className="sn-shell text-center">
+        {/* §6 在 FAQ 和 footer 之间增加最后 CTA，不加背景、装饰、cyan 或 glow。 */}
+        <h2 className="m-0 text-[clamp(32px,4vw,36px)] leading-tight font-semibold tracking-normal text-white [font-family:var(--font-sans)]">
+          准备把你的学习连成网了吗？
+        </h2>
+        <p className="mx-auto mt-6 max-w-[560px] text-sm leading-6 text-[#9CA3AF]">
+          免费开始，永久免费层支持无限 Note 和 3 个 Track。
+        </p>
+        <div className="mt-8 flex flex-wrap justify-center gap-3">
+          <a
+            className="inline-flex h-11 items-center justify-center rounded-[10px] bg-[#0A0A0A] px-5 text-sm font-semibold text-white transition-colors hover:bg-[#1F1F1F]"
+            href="/auth?mode=register"
+          >
+            免费开始 →
+          </a>
+          <a
+            className="inline-flex h-11 items-center justify-center rounded-[10px] border border-[#3F3F3F] px-5 text-sm font-semibold text-white transition-colors hover:bg-[#1F1F1F]"
+            href="#community"
+          >
+            浏览社区
+          </a>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function LandingFooter() {
   const groups: Array<[string, string[]]> = [
     ["Product", ["Tour", "Pricing", "Changelog", "Roadmap"]],
     ["Community", ["Explore", "Top Tracks", "Tags", "Discord"]],
-    ["Resources", ["Docs", "API", "Design System", "Blog"]],
+    ["Resources", ["Docs", "API", "Blog"]],
     ["Company", ["About", "Privacy", "Terms", "Contact"]],
   ];
 
   return (
     <footer className="sn-footer">
       <div className="sn-shell">
-        <div className="sn-footer-grid">
-          <div>
-            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <SynapseLogo size={20} />
-              <span style={{ fontWeight: 650 }}>Synapse</span>
-            </div>
-            <p
-              style={{
-                maxWidth: 320,
-                margin: "12px 0 0",
-                color: "var(--text-secondary)",
-                fontSize: 13,
-                lineHeight: 1.65,
-              }}
-            >
-              让你的 AI 学习不再是孤岛。数学 ↔ 代码 ↔ 论文
-              三位一体的开源学习社区。
-            </p>
+        <div className="relative">
+          {/* §7.c Footer 右上角增加社交 icon，不包含 GitHub。 */}
+          <div className="absolute top-0 right-0 flex items-center gap-3">
+            <FooterSocialLink href="https://x.com" label="Twitter / X">
+              <path d="M13.6 2h2.1l-4.7 5.4 5.5 7.3h-4.3L8.9 10.3 5 14.7H2.9l5-5.7L2.6 2h4.4l3 4 3.6-4Zm-.7 11.4h1.2L6.4 3.2H5.1l7.8 10.2Z" />
+            </FooterSocialLink>
+            <FooterSocialLink href="https://discord.com" label="Discord">
+              <path d="M13.5 4.1A11 11 0 0 0 10.8 3l-.1.2c-.1.2-.2.4-.3.6a10.2 10.2 0 0 0-3 0 4.8 4.8 0 0 0-.4-.8 11 11 0 0 0-2.7 1.1A11.5 11.5 0 0 0 2.3 12c1.1.8 2.2 1.3 3.3 1.7l.7-1.1-1.1-.5.3-.2c2.1 1 4.3 1 6.4 0l.3.2-1.1.5.7 1.1c1.1-.3 2.2-.9 3.3-1.7a11.5 11.5 0 0 0-1.6-7.9ZM6.8 10.4c-.6 0-1.1-.6-1.1-1.3s.5-1.3 1.1-1.3c.7 0 1.2.6 1.2 1.3s-.5 1.3-1.2 1.3Zm4.4 0c-.7 0-1.2-.6-1.2-1.3s.5-1.3 1.2-1.3c.6 0 1.1.6 1.1 1.3s-.5 1.3-1.1 1.3Z" />
+            </FooterSocialLink>
+            <FooterSocialLink href="mailto:hello@synapse.dev" label="Email">
+              <path d="M2.5 3.5h11A1.5 1.5 0 0 1 15 5v6a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 1 11V5a1.5 1.5 0 0 1 1.5-1.5Zm.2 1.3 5.3 4 5.3-4H2.7Zm11 1.2-5.2 3.9a.8.8 0 0 1-1 0L2.3 6V11c0 .1.1.2.2.2h11c.1 0 .2-.1.2-.2V6Z" />
+            </FooterSocialLink>
           </div>
-          {groups.map(([group, links]) => (
-            <div key={group}>
-              <div
-                style={{
-                  marginBottom: 14,
-                  color: "var(--text-muted)",
-                  fontSize: 11,
-                  letterSpacing: ".08em",
-                  textTransform: "uppercase",
-                }}
-              >
-                {group}
+          <div className="sn-footer-grid">
+            <div>
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <SynapseLogo size={20} />
+                <span style={{ fontWeight: 650 }}>Synapse</span>
               </div>
-              <ul
+              <p
                 style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: 8,
-                  margin: 0,
-                  padding: 0,
-                  listStyle: "none",
+                  maxWidth: 320,
+                  margin: "12px 0 0",
+                  color: "var(--text-secondary)",
+                  fontSize: 13,
+                  lineHeight: 1.65,
                 }}
               >
-                {links.map((item) => (
-                  <li
-                    key={item}
-                    style={{ color: "var(--text-secondary)", fontSize: 13 }}
-                  >
-                    {item}
-                  </li>
-                ))}
-              </ul>
+                {/* §7.a 修正 Footer tagline。 */}
+                让你的 AI 学习不再是孤岛。数学 ↔ 代码 ↔ 论文
+                三位一体的学习社区。
+              </p>
             </div>
-          ))}
+            {groups.map(([group, links]) => (
+              <div key={group}>
+                <div
+                  style={{
+                    marginBottom: 14,
+                    color: "var(--text-muted)",
+                    fontSize: 11,
+                    letterSpacing: ".08em",
+                    textTransform: "uppercase",
+                  }}
+                >
+                  {group}
+                </div>
+                <ul
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 8,
+                    margin: 0,
+                    padding: 0,
+                    listStyle: "none",
+                  }}
+                >
+                  {links.map((item) => (
+                    <li
+                      key={item}
+                      style={{ color: "var(--text-secondary)", fontSize: 13 }}
+                    >
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
         </div>
         <div className="sn-footer-bottom">
-          <div>© 2026 Synapse Labs. 保留所有权利.</div>
+          {/* §7.b Footer 最底部改为产品 metadata。 */}
+          <div>© 2026 Synapse · Made in Hangzhou · v0.7.2</div>
           <div style={{ display: "flex", gap: 18 }}>
             <span>中文</span>
-            <span>GitHub</span>
-            <span>Twitter</span>
           </div>
         </div>
       </div>
@@ -1783,26 +1592,42 @@ function LandingFooter() {
   );
 }
 
-function SectionEyebrow({ children }: { children: React.ReactNode }) {
-  return <div className="sn-eyebrow">● {children}</div>;
-}
-
-function SectionTitle({
+function FooterSocialLink({
+  href,
+  label,
   children,
-  sub,
 }: {
+  href: string;
+  label: string;
   children: React.ReactNode;
-  sub?: string;
 }) {
   return (
-    <>
-      <h2 className="sn-section-title">{children}</h2>
-      {sub ? <p className="sn-section-sub">{sub}</p> : null}
-    </>
+    <a
+      aria-label={label}
+      className="inline-flex size-4 text-[#6B7280] transition-colors hover:text-white"
+      href={href}
+    >
+      <svg aria-hidden="true" fill="currentColor" viewBox="0 0 16 16">
+        {children}
+      </svg>
+    </a>
+  );
+}
+
+function SectionEyebrow({ children }: { children: React.ReactNode }) {
+  // §2 统一 section header 小字格式：数字 / 中文。
+  return (
+    <div className="mb-4 text-[11px] tracking-[0.05em] text-[#9CA3AF] [font-family:var(--font-mono)]">
+      {children}
+    </div>
   );
 }
 
 function blockColor(kind: BlockKind) {
-  if (kind === "concept") return "var(--brand-cyan)";
-  return `var(--block-${kind})`;
+  return {
+    math: "var(--color-math)",
+    code: "var(--color-code)",
+    paper: "var(--color-paper)",
+    concept: "var(--color-concept)",
+  }[kind];
 }

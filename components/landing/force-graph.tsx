@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { hexToRgba } from "./synapse-particles";
 
 export type GraphNode = {
   id: string;
@@ -39,11 +38,18 @@ type GraphState = {
   h: number;
 };
 
-const DEFAULT_PALETTE = {
-  math: "#6EE7B7",
-  code: "#FBBF24",
-  paper: "#93C5FD",
-  concept: "#4DD0FF",
+const COLOR_VARIABLES = {
+  math: "--color-math",
+  code: "--color-code",
+  paper: "--color-paper",
+  concept: "--color-concept",
+} as const;
+
+const FALLBACK_PALETTE = {
+  math: "#3DDC97",
+  code: "#F5B85B",
+  paper: "#6FA8DC",
+  concept: "#4ABEFF",
 };
 
 const STATIC_LAYOUT: Record<string, [number, number]> = {
@@ -75,13 +81,11 @@ export function ForceGraph({
   links: initialLinks,
   width = 720,
   height = 440,
-  accentColor = "#4DD0FF",
 }: {
   nodes: GraphNode[];
   links: GraphLink[];
   width?: number;
   height?: number;
-  accentColor?: string;
 }) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [hoveredOverlay, setHoveredOverlay] = useState<{
@@ -165,7 +169,7 @@ export function ForceGraph({
           hoveredIndex !== null &&
           (link.s === hoveredIndex || link.t === hoveredIndex);
         ctx.strokeStyle = active
-          ? hexToRgba(accentColor, 0.7)
+          ? "rgba(255,255,255,0.36)"
           : "rgba(255,255,255,0.08)";
         ctx.lineWidth = active ? 1.5 : 0.8;
         ctx.beginPath();
@@ -176,28 +180,11 @@ export function ForceGraph({
 
       for (let index = 0; index < nodes.length; index += 1) {
         const node = nodes[index];
-        const color = DEFAULT_PALETTE[node.group];
+        const color = readGraphColor(node.group);
         const isHovered = hoveredIndex === index;
         const dim =
           hoveredIndex !== null && !isHovered && !neighbors.has(index);
         const radius = node.r * (isHovered ? 1.4 : 1);
-
-        if (isHovered) {
-          const glow = ctx.createRadialGradient(
-            node.x,
-            node.y,
-            0,
-            node.x,
-            node.y,
-            radius * 4,
-          );
-          glow.addColorStop(0, hexToRgba(color, 0.5));
-          glow.addColorStop(1, hexToRgba(color, 0));
-          ctx.fillStyle = glow;
-          ctx.beginPath();
-          ctx.arc(node.x, node.y, radius * 4, 0, Math.PI * 2);
-          ctx.fill();
-        }
 
         ctx.globalAlpha = dim ? 0.25 : 1;
         ctx.fillStyle = color;
@@ -321,7 +308,7 @@ export function ForceGraph({
       window.removeEventListener("pointerup", onUp);
       canvas.removeEventListener("pointerleave", onLeave);
     };
-  }, [accentColor, height, width]);
+  }, [height, width]);
 
   return (
     <div style={{ position: "relative", width, height }}>
@@ -360,6 +347,14 @@ export function ForceGraph({
       ) : null}
     </div>
   );
+}
+
+function readGraphColor(group: GraphNode["group"]) {
+  if (typeof window === "undefined") return FALLBACK_PALETTE[group];
+  const value = getComputedStyle(document.documentElement)
+    .getPropertyValue(COLOR_VARIABLES[group])
+    .trim();
+  return value || FALLBACK_PALETTE[group];
 }
 
 function fallbackLayout(index: number, total: number): [number, number] {

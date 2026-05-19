@@ -98,7 +98,7 @@ type ParticleState = {
 
 export function SynapseParticles({
   nodeCount = 280,
-  colors = ["#4DD0FF", "#60A5FA", "#E07856"],
+  colors = ["#6B7280", "#A8A8B3", "#F4F4F7"],
 }: {
   nodeCount?: number;
   colors?: string[];
