@@ -1,9 +1,10 @@
 "use client";
 
-import { masteryItems, queueItems } from "@/lib/demo/synapse-data";
+import type { ReviewCard } from "@/lib/api";
 import { cn } from "@/lib/utils/cn";
 
 type ReviewScreenProps = {
+  cards: ReviewCard[];
   userCode: string;
   setUserCode: (value: string) => void;
   showCompare: boolean;
@@ -11,11 +12,26 @@ type ReviewScreenProps = {
 };
 
 export function ReviewScreen({
+  cards,
   userCode,
   setUserCode,
   showCompare,
   onCompare,
 }: ReviewScreenProps) {
+  const currentCard = cards[0];
+
+  if (!currentCard) {
+    return (
+      <section className="py-6">
+        <div className="rounded-[18px] border hair bg-white/45 p-6">
+          <div className="sect-label">Review Queue</div>
+          <h1 className="mt-2 text-[22px] font-bold">今天没有待复习卡片</h1>
+          <p className="mt-2 text-[13px] text-slate-500">继续完成 Workspace 中的训练任务。</p>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section className="py-6">
       <div className="mb-5 flex flex-wrap items-center justify-between gap-2 border-b hair pb-3">
@@ -49,8 +65,7 @@ export function ReviewScreen({
               <div className="lg:col-span-7">
                 <div className="sect-label mb-1.5">本题要纠正的错误</div>
                 <div className="text-[17px] font-semibold leading-relaxed">
-                  你上次直接用了 <code className="rounded bg-slate-100 px-1">X.T @ X</code>
-                  ,但忘记给输入拼接偏置列,所以模型没有学到截距项。
+                  {currentCard.errorSummary}
                 </div>
               </div>
               <div className="text-[12px] lg:col-span-5 lg:border-l lg:pl-6 hair">
@@ -66,11 +81,7 @@ export function ReviewScreen({
 
           <div className="py-5">
             <div className="mb-1 text-[15px] font-medium leading-relaxed">
-              重写这个函数: 用 NumPy 实现带偏置项的正规方程解{" "}
-              <code className="rounded bg-slate-100 px-1 text-[13px]">
-                linear_regression(X, y)
-              </code>
-              。
+              {currentCard.prompt}
             </div>
             <p className="mb-3 text-[12px] text-slate-500">
               先自己修正,再和参考实现对比。对比结束后,再判断这次到底是“记住了”还是“只是看懂了”。
@@ -108,7 +119,7 @@ export function ReviewScreen({
               </button>
             </div>
 
-            {showCompare ? <CompareResult userCode={userCode} /> : null}
+            {showCompare ? <CompareResult card={currentCard} userCode={userCode} /> : null}
           </div>
 
           <div className="border-t hair pt-5">
@@ -116,16 +127,16 @@ export function ReviewScreen({
               <h3 className="text-[15px] font-semibold">今日纠错队列</h3>
               <span className="sect-label">按错因优先级排序</span>
             </div>
-            <QueueList />
+            <QueueList cards={cards} />
           </div>
         </div>
-        <ReviewSidebar />
+        <ReviewSidebar cards={cards} />
       </div>
     </section>
   );
 }
 
-function CompareResult({ userCode }: { userCode: string }) {
+function CompareResult({ card, userCode }: { card: ReviewCard; userCode: string }) {
   return (
     <div className="mt-5">
       <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
@@ -138,14 +149,7 @@ function CompareResult({ userCode }: { userCode: string }) {
         <div>
           <div className="sect-label mb-1.5">参考答案</div>
           <pre className="h-[150px] overflow-x-auto rounded-md bg-slate-900 p-3 text-[11px] leading-relaxed text-slate-100">
-            {`import numpy as np
-
-def linear_regression(X, y):
-    `}
-            <span className="rounded bg-garden-600/40">X_b = np.c_[np.ones((len(X),1)), X]</span>
-            {`
-    w = np.linalg.inv(X_b.T@X_b) @ X_b.T@y
-    return w`}
+            {card.referenceCode}
           </pre>
         </div>
       </div>
@@ -174,30 +178,20 @@ def linear_regression(X, y):
   );
 }
 
-function QueueList() {
+function QueueList({ cards }: { cards: ReviewCard[] }) {
   return (
     <div>
-      {queueItems.map(([type, title, status], index) => (
-        <div className="flex items-center gap-2.5 border-b hair py-2 last:border-0" key={title}>
+      {cards.map((card, index) => (
+        <div className="flex items-center gap-2.5 border-b hair py-2 last:border-0" key={card.id}>
           <span className="w-5 text-[11px] text-slate-300">{index + 1}</span>
-          <span
-            className={cn(
-              "rounded px-1.5 py-0.5 text-[10px]",
-              type === "代码纠错" ? "bg-blue-50 text-blue-600" : "bg-violet-50 text-violet-600",
-            )}
-          >
-            {type}
+          <span className="rounded bg-blue-50 px-1.5 py-0.5 text-[10px] text-blue-600">
+            代码纠错
           </span>
-          <span className={cn("flex-1", status === "当前" ? "font-medium" : "text-slate-600")}>
-            {title}
+          <span className={cn("flex-1", index === 0 ? "font-medium" : "text-slate-600")}>
+            {card.errorSummary}
           </span>
-          <span
-            className={cn(
-              "text-[11px]",
-              status === "当前" ? "font-medium text-garden-600" : "text-slate-400",
-            )}
-          >
-            {status}
+          <span className={cn("text-[11px]", index === 0 ? "font-medium text-garden-600" : "text-slate-400")}>
+            {index === 0 ? "当前" : card.status}
           </span>
         </div>
       ))}
@@ -205,20 +199,26 @@ function QueueList() {
   );
 }
 
-function ReviewSidebar() {
+function ReviewSidebar({ cards }: { cards: ReviewCard[] }) {
+  const dueCount = cards.filter((card) => card.status === "due").length;
+
   return (
     <aside className="lg:col-span-4 lg:border-l lg:pl-8 hair">
       <div className="border-b hair pb-5">
         <h3 className="mb-2.5 text-[15px] font-semibold">本轮纠错目标</h3>
         <div className="grid grid-cols-2 gap-y-3 border-b hair pb-4">
-          <ReviewStat value="6" label="今日待纠错" />
+          <ReviewStat value={String(dueCount)} label="今日待纠错" />
           <ReviewStat value="34" label="本周已回放" />
           <ReviewStat value="82%" label="最近修正成功率" green />
           <ReviewStat value="3" label="重复错误点" />
         </div>
         <h3 className="mb-3 mt-4 text-[15px] font-semibold">错误类型分布</h3>
         <div className="space-y-2.5 border-b hair pb-4">
-          {masteryItems.map(([title, count, color]) => (
+          {[
+            { color: "#1f8a47", count: dueCount, title: "偏置项/截距处理" },
+            { color: "#f59e0b", count: 2, title: "矩阵维度与转置" },
+            { color: "#94a3b8", count: 1, title: "评估指标理解" },
+          ].map(({ color, count, title }) => (
             <div key={title}>
               <div className="mb-1 flex justify-between text-[12px]">
                 <span>{title}</span>

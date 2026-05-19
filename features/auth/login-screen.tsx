@@ -1,6 +1,25 @@
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { StateSurface } from "@/components/ui/state-surface";
+import { identityApi, normalizeApiError } from "@/lib/api";
 
 export function LoginScreen() {
+  const router = useRouter();
+  const [email, setEmail] = useState("raymond@synapse.local");
+  const [password, setPassword] = useState("learning-garden");
+  const [message, setMessage] = useState("当前使用 mock identity API, 登录后进入 Workspace。");
+
+  const login = async () => {
+    try {
+      await identityApi.login({ email, password });
+      router.push("/workspace");
+    } catch (error) {
+      setMessage(normalizeApiError(error).message);
+    }
+  };
+
   return (
     <main className="min-h-screen bg-[var(--paper)] px-5 py-8 text-[13px] text-[color:var(--ink)]">
       <div className="mx-auto grid min-h-[calc(100vh-64px)] max-w-[1120px] grid-cols-1 overflow-hidden rounded-[28px] border hair bg-white/35 lg:grid-cols-[0.9fr_1.1fr]">
@@ -43,20 +62,23 @@ export function LoginScreen() {
                 <span className="sect-label mb-1.5 block">邮箱</span>
                 <input
                   className="inp w-full bg-white/70 px-3 py-2.5 focus:border-garden-600 focus:outline-none"
-                  defaultValue="raymond@synapse.local"
+                  onChange={(event) => setEmail(event.target.value)}
                   type="email"
+                  value={email}
                 />
               </label>
               <label className="block">
                 <span className="sect-label mb-1.5 block">密码</span>
                 <input
                   className="inp w-full bg-white/70 px-3 py-2.5 focus:border-garden-600 focus:outline-none"
-                  defaultValue="learning-garden"
+                  onChange={(event) => setPassword(event.target.value)}
                   type="password"
+                  value={password}
                 />
               </label>
               <button
                 className="focus-ring w-full rounded-md bg-garden-700 px-4 py-2.5 font-medium text-white transition hover:bg-garden-800"
+                onClick={login}
                 type="button"
               >
                 进入 Workspace
@@ -65,10 +87,10 @@ export function LoginScreen() {
 
             <StateSurface
               className="mt-7"
-              description="当前没有调用后端认证接口，也不会写入 session。完成后端联调时只需要替换这里的提交动作。"
+              description={message}
               label="接入状态"
-              title="认证 UI 已预留，行为仍是静态占位"
-              tone="amber"
+              title="认证 UI 已接入 mock API"
+              tone="green"
             />
           </div>
         </section>

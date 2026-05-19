@@ -9,6 +9,12 @@ describe("feature API migration", () => {
       "features/workspace/workspace-screen.tsx",
       "features/concepts/concept-route.tsx",
       "features/concepts/concept-screen.tsx",
+      "features/studio/studio-route.tsx",
+      "features/studio/studio-screen.tsx",
+      "features/review/review-route.tsx",
+      "features/review/review-screen.tsx",
+      "features/auth/login-screen.tsx",
+      "features/admin/admin-screen.tsx",
     ];
 
     for (const file of files) {

@@ -14,6 +14,8 @@ Next.js frontend for **AI Learning Garden / Synapse**. The current UI implements
 - `lib/api` REST client boundary.
 - `lib/config` public environment normalization.
 - `runtime/python-runtime.ts` Pyodide placeholder that does not pretend to execute Python.
+- `docs/api/openapi.yaml` formal M0/M1 API contract.
+- Mock-first API facade for frontend development before backend implementation.
 - Provided avatar image served from `public/avatar.jpg`.
 
 ## Stack
@@ -49,6 +51,7 @@ learning-garden-web/
 |-- app/                         # App Router groups, loading/error/not-found, global styles
 |-- components/layout/           # App shell, top navigation, route navigation hook
 |-- components/ui/               # Shared UI primitives
+|-- docs/api/openapi.yaml        # Backend-facing API contract
 |-- features/admin/              # Admin governance console placeholder
 |-- features/auth/               # Login placeholder
 |-- features/community/          # Public learning community surface
@@ -57,6 +60,8 @@ learning-garden-web/
 |-- features/studio/             # Content authoring shell
 |-- features/workspace/          # Personal learning workspace
 |-- lib/api/                     # Typed REST API client boundary
+|-- lib/api/modules/             # Domain API facades used by feature modules
+|-- lib/api/mock/                # In-process mock repository and transport
 |-- lib/config/                  # Public env parsing and defaults
 |-- lib/demo/                    # Demo data shared by the current frontend prototype
 |-- lib/utils/                   # Shared utility helpers
@@ -78,3 +83,14 @@ learning-garden-web/
 /login
 /admin
 ```
+
+## Mock-First API
+
+Frontend features call domain facades in `lib/api/modules/*`, not raw fixtures or URLs. The current default transport is mock mode, backed by `lib/api/mock/*`.
+
+```bash
+NEXT_PUBLIC_API_MODE=mock
+NEXT_PUBLIC_API_BASE_URL=http://localhost:3001/api/v1
+```
+
+When `learning-garden-server` is ready, keep the OpenAPI shapes in `docs/api/openapi.yaml`, set `NEXT_PUBLIC_API_MODE=http`, and implement the same `/api/v1` responses on the backend.

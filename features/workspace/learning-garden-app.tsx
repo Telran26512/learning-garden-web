@@ -28,7 +28,9 @@ export function LearningGardenApp() {
         {screen === "workspace" ? (
           <WorkspaceScreen concepts={mockConcepts} goTo={goTo} roadmapTasks={mockRoadmapTasks} />
         ) : null}
-        {screen === "studio" ? <StudioScreen /> : null}
+        {screen === "studio" ? (
+          <StudioScreen concept={mockConcepts[0]!} onSave={() => undefined} />
+        ) : null}
         {screen === "concept" ? (
           <ConceptScreen
             concept={mockConcepts[0]!}
@@ -46,6 +48,7 @@ export function LearningGardenApp() {
         {screen === "community" ? <CommunityScreen goTo={goTo} /> : null}
         {screen === "review" ? (
           <ReviewScreen
+            cards={mockReviewCards}
             onCompare={() => setShowCompare(true)}
             setUserCode={setUserCode}
             showCompare={showCompare}

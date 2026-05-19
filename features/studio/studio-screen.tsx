@@ -1,9 +1,33 @@
 "use client";
 
-import { studioDraft } from "@/lib/demo/synapse-data";
+import { useState } from "react";
+import type { Concept, UpdateConceptInput } from "@/lib/api";
 import { cn } from "@/lib/utils/cn";
 
-export function StudioScreen() {
+type StudioScreenProps = {
+  concept: Concept;
+  onSave: (input: UpdateConceptInput) => void | Promise<void>;
+  savedAt?: string;
+};
+
+export function StudioScreen({ concept, onSave, savedAt }: StudioScreenProps) {
+  const [title, setTitle] = useState(concept.title);
+  const [draft, setDraft] = useState(toEditableDraft(concept));
+
+  const saveDraft = () => {
+    void onSave({
+      sections: [
+        {
+          body: draft,
+          id: "section_editor_draft",
+          kind: "note",
+          title: "Studio draft",
+        },
+      ],
+      title,
+    });
+  };
+
   return (
     <section className="py-6">
       <div className="flex items-start justify-between gap-5 border-b hair pb-4">
@@ -19,6 +43,7 @@ export function StudioScreen() {
         <div className="flex items-center gap-2">
           <button
             className="focus-ring rounded-md border hair px-3.5 py-1.5 text-[12px] transition hover:bg-slate-50"
+            onClick={saveDraft}
             type="button"
           >
             保存草稿
@@ -58,31 +83,40 @@ export function StudioScreen() {
       </div>
 
       <div className="grid grid-cols-1 gap-x-8 gap-y-7 pt-5 lg:grid-cols-[250px_minmax(0,1fr)_230px]">
-        <StudioMetaPanel />
-        <StudioEditor />
-        <StudioPublishPanel />
+        <StudioMetaPanel concept={concept} onTitleChange={setTitle} title={title} />
+        <StudioEditor draft={draft} onDraftChange={setDraft} savedAt={savedAt} />
+        <StudioPublishPanel concept={concept} />
       </div>
     </section>
   );
 }
 
-function StudioMetaPanel() {
+function StudioMetaPanel({
+  concept,
+  onTitleChange,
+  title,
+}: {
+  concept: Concept;
+  onTitleChange: (value: string) => void;
+  title: string;
+}) {
   return (
     <aside className="space-y-4 lg:border-r lg:pr-8 hair">
       <div>
         <label className="sect-label mb-1.5 block">标题 *</label>
         <textarea
           className="inp w-full px-2.5 py-1.5 text-[13px] focus:border-garden-600 focus:outline-none"
-          defaultValue="线性回归:最小二乘推导与实现"
+          onChange={(event) => onTitleChange(event.target.value)}
           rows={2}
+          value={title}
         />
       </div>
       <div>
         <label className="sect-label mb-1.5 block">标签</label>
         <div className="flex flex-wrap gap-1.5">
-          {["线性回归 ×", "最小二乘 ×", "统计学习 ×"].map((tag) => (
+          {concept.tags.map((tag) => (
             <span className="rounded bg-slate-100 px-2 py-0.5 text-[12px]" key={tag}>
-              {tag}
+              {tag} ×
             </span>
           ))}
           <span className="rounded border border-dashed hair px-2 py-0.5 text-[12px] text-slate-400">
@@ -100,7 +134,7 @@ function StudioMetaPanel() {
             className="focus-ring flex-1 rounded-md border border-garden-600 bg-garden-50 py-1.5 font-medium text-garden-700"
             type="button"
           >
-            🌐 公开
+            {concept.visibility === "public" ? "🌐 公开" : "🔒 私有"}
           </button>
         </div>
       </div>
@@ -123,7 +157,7 @@ function StudioMetaPanel() {
             <label className="sect-label mb-1.5 block">Slug</label>
             <input
               className="inp w-full px-2.5 py-1.5 text-[13px] focus:border-garden-600 focus:outline-none"
-              defaultValue="linear-regression-ols"
+              defaultValue={concept.slug}
             />
             <p className="mt-1 text-[11px] text-slate-400">
               /raymond/concepts/linear-regression-ols
@@ -157,7 +191,15 @@ function SelectLike({ label, value }: { label: string; value: string }) {
   );
 }
 
-function StudioEditor() {
+function StudioEditor({
+  draft,
+  onDraftChange,
+  savedAt,
+}: {
+  draft: string;
+  onDraftChange: (value: string) => void;
+  savedAt?: string;
+}) {
   return (
     <div className="min-w-0">
       <div className="mb-3 flex items-center gap-5 border-b hair text-[13px]">
@@ -171,7 +213,9 @@ function StudioEditor() {
           预览
         </button>
         <div className="flex-1" />
-        <span className="pb-2 text-[11px] text-slate-400">已自动保存草稿 · 38 秒前</span>
+        <span className="pb-2 text-[11px] text-slate-400">
+          {savedAt ? `已保存 · ${savedAt}` : "来自 mock API · 尚未保存"}
+        </span>
       </div>
       <div className="inp flex items-center gap-0 overflow-hidden rounded-b-none bg-slate-50 text-[12px] text-slate-500">
         <div className="flex items-center gap-2 border-r hair px-3 py-1.5">
@@ -196,7 +240,8 @@ function StudioEditor() {
       </div>
       <textarea
         className="studio-editor inp w-full rounded-t-none px-3 py-2.5 font-mono text-[13px] leading-6 focus:border-garden-600 focus:outline-none"
-        defaultValue={studioDraft}
+        onChange={(event) => onDraftChange(event.target.value)}
+        value={draft}
       />
       <p className="mt-1.5 text-[11px] text-slate-400">
         支持 Markdown 与 KaTeX · 长内容会在编辑区内滚动,不会挤乱页面
@@ -205,13 +250,15 @@ function StudioEditor() {
   );
 }
 
-function StudioPublishPanel() {
+function StudioPublishPanel({ concept }: { concept: Concept }) {
+  const hasCode = concept.sections.some((section) => section.kind === "code");
+
   return (
     <aside className="text-[12px] lg:border-l lg:pl-8 hair">
       <div className="border-b hair pb-4">
         <div className="mb-3 flex items-center justify-between">
           <h3 className="text-[14px] font-semibold">发布检查</h3>
-          <span className="font-medium text-garden-700">5/6</span>
+          <span className="font-medium text-garden-700">{hasCode ? "6/6" : "5/6"}</span>
         </div>
         <div className="space-y-2.5">
           {["标题和标签已填写", "包含最小必要数学推导", "公式可用 KaTeX 渲染", "已关联前置概念", "可见性设置为公开"].map(
@@ -222,19 +269,26 @@ function StudioPublishPanel() {
               </div>
             ),
           )}
-          <div className="flex gap-2 text-amber-700">
-            <span>!</span>
-            <span>还缺一个可运行代码块</span>
-          </div>
+          {!hasCode ? (
+            <div className="flex gap-2 text-amber-700">
+              <span>!</span>
+              <span>还缺一个可运行代码块</span>
+            </div>
+          ) : null}
         </div>
       </div>
       <div className="border-b hair py-4">
         <h3 className="mb-3 text-[14px] font-semibold">内容结构</h3>
         <div className="space-y-2 text-slate-600">
-          <StructureRow label="最小二乘推导" value="当前" active />
-          <StructureRow label="几何意义" value="已写" />
-          <StructureRow label="代码实现" value="缺失" warning />
-          <StructureRow label="错因提醒" value="待补" />
+          {concept.sections.map((section) => (
+            <StructureRow
+              active={section.kind === "math"}
+              key={section.id}
+              label={section.title}
+              value={section.kind}
+              warning={section.kind === "note"}
+            />
+          ))}
         </div>
       </div>
       <div className="pt-4">
@@ -252,6 +306,12 @@ function StudioPublishPanel() {
       </div>
     </aside>
   );
+}
+
+function toEditableDraft(concept: Concept) {
+  return concept.sections
+    .map((section) => `## ${section.title}\n\n${section.body}`)
+    .join("\n\n---\n\n");
 }
 
 function StructureRow({
