@@ -1,0 +1,9 @@
+.DS_Store
+.next/
+node_modules/
+*.tsbuildinfo
+.idea/
+
+# Local prototype references supplied by the user.
+Synapse/
+Synapse · Print.pdf
