@@ -7,6 +7,12 @@ describe("domain API modules", () => {
     await expect(contentApi.listConcepts()).resolves.toEqual(
       expect.arrayContaining([expect.objectContaining({ id: "concept_linear_regression" })]),
     );
+    await expect(contentApi.listPublicContent({ tag: "线性回归" })).resolves.toEqual(
+      expect.arrayContaining([expect.objectContaining({ slug: "linear-regression-ols" })]),
+    );
+    await expect(contentApi.getPublicProfile("user_raymond")).resolves.toMatchObject({
+      publicContentCount: expect.any(Number),
+    });
     await expect(learningApi.getRoadmap()).resolves.toEqual(
       expect.arrayContaining([expect.objectContaining({ id: "task_ols_bias" })]),
     );

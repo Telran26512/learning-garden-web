@@ -4,15 +4,15 @@ import { useEffect, useState } from "react";
 import { AppShell } from "@/components/layout/app-shell";
 import { useSynapseNavigation } from "@/components/layout/use-synapse-navigation";
 import { StateSurface } from "@/components/ui/state-surface";
-import { CommunityScreen } from "@/features/community/community-screen";
+import { UserProfileScreen } from "@/features/community/user-profile-screen";
 import { contentApi, normalizeApiError } from "@/lib/api";
-import type { PublicContentItem } from "@/lib/api";
+import type { PublicProfile } from "@/lib/api";
 
-export function CommunityRoute() {
+export function UserProfileRoute({ id }: { id: string }) {
   const goTo = useSynapseNavigation();
   const [state, setState] = useState<
-    | { status: "error"; message: string }
-    | { content: PublicContentItem[]; status: "ready" }
+    | { profile: PublicProfile; status: "ready" }
+    | { message: string; status: "error" }
     | { status: "loading" }
   >({ status: "loading" });
 
@@ -20,10 +20,10 @@ export function CommunityRoute() {
     let isActive = true;
 
     contentApi
-      .listPublicContent()
-      .then((content) => {
+      .getPublicProfile(id)
+      .then((profile) => {
         if (isActive) {
-          setState({ content, status: "ready" });
+          setState({ profile, status: "ready" });
         }
       })
       .catch((error: unknown) => {
@@ -35,16 +35,16 @@ export function CommunityRoute() {
     return () => {
       isActive = false;
     };
-  }, []);
+  }, [id]);
 
   return (
     <AppShell active="community" goTo={goTo}>
       {state.status === "loading" ? (
         <StateSurface
           className="my-8"
-          description="正在从 mock API 读取可公开浏览的学习内容。"
+          description="正在从 mock API 读取公开个人资料。"
           label="Mock API"
-          title="同步 Community Feed"
+          title="同步用户资料"
           tone="green"
         />
       ) : null}
@@ -53,11 +53,11 @@ export function CommunityRoute() {
           className="my-8"
           description={state.message}
           label="API Error"
-          title="Community 数据加载失败"
+          title="用户资料加载失败"
           tone="amber"
         />
       ) : null}
-      {state.status === "ready" ? <CommunityScreen content={state.content} /> : null}
+      {state.status === "ready" ? <UserProfileScreen profile={state.profile} /> : null}
     </AppShell>
   );
 }

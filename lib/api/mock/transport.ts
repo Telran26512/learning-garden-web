@@ -1,4 +1,5 @@
 import type { ApiMethod, ApiTransport } from "@/lib/api/transport";
+import type { ListPublicContentQuery } from "@/lib/api/contracts";
 import type { MockApiRepository } from "@/lib/api/mock/repository";
 import { mockLatency } from "@/lib/api/mock/latency";
 
@@ -17,7 +18,8 @@ function handleRequest(
   path: string,
   body: unknown,
 ) {
-  const [pathname] = path.split("?");
+  const [pathname, queryString] = path.split("?");
+  const searchParams = new URLSearchParams(queryString);
 
   if (method === "GET" && pathname === "/auth/me") {
     return repository.getCurrentUser();
@@ -33,6 +35,24 @@ function handleRequest(
 
   if (method === "GET" && pathname === "/concepts") {
     return repository.listConcepts();
+  }
+
+  if (method === "GET" && pathname === "/content/public") {
+    return repository.listPublicContent({
+      contentType: readPublicContentType(searchParams),
+      ownerId: searchParams.get("ownerId") ?? undefined,
+      tag: searchParams.get("tag") ?? undefined,
+    });
+  }
+
+  const publicContentMatch = pathname?.match(/^\/content\/public\/([^/]+)$/);
+  if (publicContentMatch && method === "GET") {
+    return repository.getPublicContent(decodeURIComponent(publicContentMatch[1]!));
+  }
+
+  const publicProfileMatch = pathname?.match(/^\/users\/([^/]+)\/public-profile$/);
+  if (publicProfileMatch && method === "GET") {
+    return repository.getPublicProfile(decodeURIComponent(publicProfileMatch[1]!));
   }
 
   if (method === "POST" && pathname === "/concepts") {
@@ -80,4 +100,16 @@ function handleRequest(
   }
 
   throw new Error(`Unhandled mock API request: ${method} ${path}`);
+}
+
+function readPublicContentType(
+  searchParams: URLSearchParams,
+): ListPublicContentQuery["contentType"] {
+  const value = searchParams.get("contentType");
+
+  if (value === "all" || value === "concept" || value === "experiment" || value === "paper") {
+    return value;
+  }
+
+  return undefined;
 }

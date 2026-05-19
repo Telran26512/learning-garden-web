@@ -2,6 +2,8 @@ import type {
   AdminOverview,
   Concept,
   ModerationQueueItem,
+  PublicContentItem,
+  PublicProfile,
   ReviewCard,
   RoadmapTask,
   User,
@@ -69,7 +71,7 @@ print("R2 =", r2_score(y, model.predict(X)))`,
     tags: ["线性回归", "最小二乘", "统计学习"],
     title: "线性回归: 最小二乘推导与实现",
     updatedAt: "2026-05-19T00:00:00.000Z",
-    visibility: "private",
+    visibility: "public",
   },
   {
     createdAt: "2026-05-17T00:00:00.000Z",
@@ -91,6 +93,66 @@ print("R2 =", r2_score(y, model.predict(X)))`,
     title: "Softmax + 交叉熵梯度的稳定实现",
     updatedAt: "2026-05-18T00:00:00.000Z",
     visibility: "private",
+  },
+];
+
+export const mockPublicAuthors = {
+  raymond: {
+    avatarUrl: "/avatar.jpg",
+    displayName: "Raymond",
+    id: "user_raymond",
+    level: 6,
+  },
+};
+
+export const mockPublicContent: PublicContentItem[] = [
+  {
+    author: mockPublicAuthors.raymond,
+    commentCount: 3,
+    contentType: "concept",
+    createdAt: "2026-05-19T00:00:00.000Z",
+    excerpt: "正规方程的推导与实现, 从矩阵维度到 NumPy 代码逐步拆解。",
+    id: "content_linear_regression_public",
+    ownerId: "user_raymond",
+    slug: "linear-regression-ols",
+    tags: ["线性回归", "最小二乘", "统计学习"],
+    title: "线性回归: 最小二乘推导与实现",
+    updatedAt: "2026-05-19T00:00:00.000Z",
+    visibility: "public",
+  },
+  {
+    author: mockPublicAuthors.raymond,
+    commentCount: 1,
+    contentType: "concept",
+    createdAt: "2026-05-18T00:00:00.000Z",
+    excerpt: "记录 softmax 与交叉熵合并后的梯度化简和数值稳定处理。",
+    id: "content_cross_entropy_public",
+    ownerId: "user_raymond",
+    slug: "cross-entropy-gradient",
+    tags: ["交叉熵", "梯度", "数值稳定"],
+    title: "Softmax + 交叉熵梯度的稳定实现",
+    updatedAt: "2026-05-18T00:00:00.000Z",
+    visibility: "public",
+  },
+];
+
+export const mockPublicProfiles: PublicProfile[] = [
+  {
+    avatarUrl: "/avatar.jpg",
+    bio: "热爱机器学习与统计学, 构建自己的知识体系。",
+    displayName: "Raymond",
+    followerCount: 128,
+    followingCount: 16,
+    id: "user_raymond",
+    isFollowing: false,
+    level: 6,
+    publicContentCount: 8,
+    stats: [
+      { label: "概念", value: "28" },
+      { label: "实验", value: "16" },
+      { label: "公开内容", value: "8" },
+      { label: "连续训练", value: "21 天" },
+    ],
   },
 ];
 

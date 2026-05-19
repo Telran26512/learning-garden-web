@@ -2,6 +2,7 @@ import type {
   AnswerReviewCardInput,
   Concept,
   CreateConceptInput,
+  ListPublicContentQuery,
   UpdateConceptInput,
   UpdateRoadmapTaskInput,
   User,
@@ -11,6 +12,8 @@ import {
   mockConcepts,
   mockCurrentUser,
   mockModerationQueue,
+  mockPublicContent,
+  mockPublicProfiles,
   mockReviewCards,
   mockRoadmapTasks,
 } from "@/lib/api/mock/fixtures";
@@ -21,6 +24,8 @@ export type MockApiRepository = ReturnType<typeof createMockApiRepository>;
 export function createMockApiRepository() {
   let currentUser: User | null = { ...mockCurrentUser };
   let concepts = clone(mockConcepts);
+  const publicContent = clone(mockPublicContent);
+  const publicProfiles = clone(mockPublicProfiles);
   const roadmapTasks = clone(mockRoadmapTasks);
   const reviewCards = clone(mockReviewCards);
 
@@ -41,7 +46,8 @@ export function createMockApiRepository() {
 
       return {
         card: { ...card },
-        nextDueAt: input.rating === "again" ? "2026-05-20T00:00:00.000Z" : "2026-05-26T00:00:00.000Z",
+        nextDueAt:
+          input.rating === "again" ? "2026-05-20T00:00:00.000Z" : "2026-05-26T00:00:00.000Z",
       };
     },
     createConcept(input: CreateConceptInput) {
@@ -81,6 +87,24 @@ export function createMockApiRepository() {
 
       return cloneOne(concept);
     },
+    getPublicContent(slug: string) {
+      const content = concepts.find((item) => item.slug === slug && item.visibility === "public");
+
+      if (!content) {
+        throw createApiDomainError(404, "not_found", "Public content not found");
+      }
+
+      return cloneOne(content);
+    },
+    getPublicProfile(id: string) {
+      const profile = publicProfiles.find((item) => item.id === id);
+
+      if (!profile) {
+        throw createApiDomainError(404, "not_found", "Public profile not found");
+      }
+
+      return cloneOne(profile);
+    },
     getCurrentUser() {
       return requireUser(currentUser);
     },
@@ -99,6 +123,29 @@ export function createMockApiRepository() {
     listConcepts() {
       requireUser(currentUser);
       return clone(concepts);
+    },
+    listPublicContent(query: ListPublicContentQuery = {}) {
+      return clone(
+        publicContent.filter((item) => {
+          if (
+            query.contentType &&
+            query.contentType !== "all" &&
+            item.contentType !== query.contentType
+          ) {
+            return false;
+          }
+
+          if (query.ownerId && item.ownerId !== query.ownerId) {
+            return false;
+          }
+
+          if (query.tag && !item.tags.includes(query.tag)) {
+            return false;
+          }
+
+          return true;
+        }),
+      );
     },
     login() {
       currentUser = { ...mockCurrentUser };

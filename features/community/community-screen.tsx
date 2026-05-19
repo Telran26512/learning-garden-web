@@ -1,12 +1,17 @@
 "use client";
 
+import Link from "next/link";
 import { Avatar } from "@/components/layout/top-nav";
-import type { Concept } from "@/lib/api";
-import type { GoToScreen } from "@/lib/navigation/synapse-navigation";
+import type { Concept, PublicContentItem } from "@/lib/api";
 import { cn } from "@/lib/utils/cn";
 
-export function CommunityScreen({ concepts, goTo }: { concepts: Concept[]; goTo: GoToScreen }) {
-  const tagRank = getTagRank(concepts);
+type CommunityScreenProps =
+  | { concepts?: never; content: PublicContentItem[]; goTo?: never }
+  | { concepts: Concept[]; content?: never; goTo?: unknown };
+
+export function CommunityScreen(props: CommunityScreenProps) {
+  const content = props.content ?? props.concepts.map(conceptToPublicContent);
+  const tagRank = getTagRank(content);
 
   return (
     <section className="py-6">
@@ -35,51 +40,63 @@ export function CommunityScreen({ concepts, goTo }: { concepts: Concept[]; goTo:
               <span>⌕</span>
               <span>搜索题解、实现、错因、公式…</span>
             </div>
-            <button className="rounded-md border hair px-3.5 py-2 text-[13px] text-slate-600" type="button">
+            <button
+              className="rounded-md border hair px-3.5 py-2 text-[13px] text-slate-600"
+              type="button"
+            >
               ⚲ 筛选
             </button>
           </div>
           <div className="border-t hair">
-            {concepts.map((concept) => (
-              <article className="border-b hair py-4" key={concept.id}>
+            {content.map((item) => (
+              <article className="border-b hair py-4" key={item.id}>
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="rounded border border-garden-100 bg-garden-50 px-1.5 py-0.5 text-[11px] text-garden-700">
-                      {concept.status === "published" ? "题解" : "草稿"}
+                      {getContentTypeLabel(item.contentType)}
                     </span>
-                    <button
+                    <Link
+                      href={`/community/concepts/${item.slug}`}
                       className="text-left text-[14px] font-semibold transition hover:text-garden-700"
-                      onClick={() => goTo("concept")}
-                      type="button"
                     >
-                      {concept.title}
-                    </button>
+                      {item.title}
+                    </Link>
                   </div>
-                  <p className="mt-1 text-[12px] text-slate-500">{concept.summary}</p>
+                  <p className="mt-1 text-[12px] text-slate-500">{item.excerpt}</p>
                   <div className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1 text-[11px] text-slate-500 md:grid-cols-4">
                     <span>
-                      语言 <b className="text-slate-700">{getLanguage(concept)}</b>
+                      类型 <b className="text-slate-700">{getContentTypeLabel(item.contentType)}</b>
                     </span>
                     <span>
-                      掌握度 <b className="num text-slate-700">{concept.mastery ?? 0}%</b>
+                      评论 <b className="num text-slate-700">{item.commentCount}</b>
                     </span>
                     <span>
-                      可见性 <b className="text-slate-700">{concept.visibility}</b>
+                      可见性 <b className="text-slate-700">{item.visibility}</b>
                     </span>
                     <span>
-                      作者 <b className="text-slate-700">Raymond</b> · {formatShortDate(concept.updatedAt)}
+                      作者{" "}
+                      <Link
+                        className="font-bold text-slate-700 hover:text-garden-700"
+                        href={`/users/${item.author.id}`}
+                      >
+                        {item.author.displayName}
+                      </Link>{" "}
+                      · {formatShortDate(item.updatedAt)}
                     </span>
                   </div>
                   <div className="mt-2 flex flex-wrap items-center gap-1.5">
-                    {concept.tags.map((tag) => (
-                      <span className="rounded bg-slate-100 px-2 py-0.5 text-[11px] text-slate-500" key={tag}>
+                    {item.tags.map((tag) => (
+                      <span
+                        className="rounded bg-slate-100 px-2 py-0.5 text-[11px] text-slate-500"
+                        key={tag}
+                      >
                         {tag}
                       </span>
                     ))}
                   </div>
                   <div className="mt-2 flex items-center gap-4 text-[12px] text-slate-400">
-                    <span>章节 {concept.sections.length}</span>
-                    <span>更新 {formatShortDate(concept.updatedAt)}</span>
+                    <span>作者等级 Lv.{item.author.level}</span>
+                    <span>更新 {formatShortDate(item.updatedAt)}</span>
                   </div>
                 </div>
               </article>
@@ -92,22 +109,48 @@ export function CommunityScreen({ concepts, goTo }: { concepts: Concept[]; goTo:
   );
 }
 
-function getLanguage(concept: Concept) {
-  return concept.sections.find((section) => section.kind === "code")?.language ?? "Markdown";
+function getContentTypeLabel(type: PublicContentItem["contentType"]) {
+  const labels: Record<PublicContentItem["contentType"], string> = {
+    concept: "题解",
+    experiment: "实验",
+    paper: "论文",
+  };
+
+  return labels[type];
 }
 
-function getTagRank(concepts: Concept[]) {
+function conceptToPublicContent(concept: Concept): PublicContentItem {
+  return {
+    author: {
+      avatarUrl: "/avatar.jpg",
+      displayName: "Raymond",
+      id: concept.ownerId,
+      level: 6,
+    },
+    commentCount: 0,
+    contentType: "concept",
+    createdAt: concept.createdAt,
+    excerpt: concept.summary,
+    id: `content_${concept.id}`,
+    ownerId: concept.ownerId,
+    slug: concept.slug,
+    tags: concept.tags,
+    title: concept.title,
+    updatedAt: concept.updatedAt,
+    visibility: "public",
+  };
+}
+
+function getTagRank(content: PublicContentItem[]) {
   const counts = new Map<string, number>();
 
-  for (const concept of concepts) {
-    for (const tag of concept.tags) {
+  for (const item of content) {
+    for (const tag of item.tags) {
       counts.set(tag, (counts.get(tag) ?? 0) + 1);
     }
   }
 
-  return [...counts.entries()]
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 5) as Array<[string, number]>;
+  return [...counts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5) as Array<[string, number]>;
 }
 
 function formatShortDate(value: string) {
@@ -160,7 +203,10 @@ function CommunityProfile({ tagRank }: { tagRank: Array<[string, number]> }) {
       </div>
       <h3 className="mb-1 mt-4 text-[14px] font-semibold">训练标签热榜</h3>
       {tagRank.map(([tag, count], index) => (
-        <div className="flex items-center gap-2 border-b hair py-[6px] text-[12px] last:border-0" key={tag}>
+        <div
+          className="flex items-center gap-2 border-b hair py-[6px] text-[12px] last:border-0"
+          key={tag}
+        >
           <span className={cn("w-4", index < 3 ? "font-bold text-garden-600" : "text-slate-400")}>
             {index + 1}
           </span>
