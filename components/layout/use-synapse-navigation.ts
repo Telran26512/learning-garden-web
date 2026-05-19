@@ -1,8 +1,8 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { screenRoutes } from "@/lib/demo/synapse-types";
-import type { Screen } from "@/lib/demo/synapse-types";
+import { screenRoutes } from "@/lib/navigation/synapse-navigation";
+import type { Screen } from "@/lib/navigation/synapse-navigation";
 
 export function useSynapseNavigation() {
   const router = useRouter();

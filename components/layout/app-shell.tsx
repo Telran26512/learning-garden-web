@@ -2,7 +2,7 @@
 
 import type { ReactNode } from "react";
 import { TopNav } from "@/components/layout/top-nav";
-import type { GoToScreen, Screen } from "@/lib/demo/synapse-types";
+import type { GoToScreen, Screen } from "@/lib/navigation/synapse-navigation";
 
 type AppShellProps = {
   active: Screen;

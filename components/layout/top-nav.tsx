@@ -2,10 +2,14 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import {
+  navItems,
+  screenRoutes,
+  type GoToScreen,
+  type NavScreen,
+  type Screen,
+} from "@/lib/navigation/synapse-navigation";
 import { cn } from "@/lib/utils/cn";
-import { navItems } from "@/lib/demo/synapse-data";
-import { screenRoutes } from "@/lib/demo/synapse-types";
-import type { GoToScreen, NavScreen, Screen } from "@/lib/demo/synapse-types";
 
 type TopNavProps = {
   active: Screen;

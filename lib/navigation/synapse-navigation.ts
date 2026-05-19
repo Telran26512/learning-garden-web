@@ -1,4 +1,4 @@
-export type Screen = "community" | "workspace" | "studio" | "concept" | "review";
+export type Screen = "community" | "concept" | "review" | "studio" | "workspace";
 
 export type NavScreen = Exclude<Screen, "concept">;
 
@@ -11,3 +11,10 @@ export const screenRoutes = {
   studio: "/studio",
   workspace: "/workspace",
 } as const satisfies Record<Screen, `/${string}`>;
+
+export const navItems: Array<{ label: string; screen: NavScreen }> = [
+  { label: "Community", screen: "community" },
+  { label: "Workspace", screen: "workspace" },
+  { label: "Studio", screen: "studio" },
+  { label: "Review", screen: "review" },
+];

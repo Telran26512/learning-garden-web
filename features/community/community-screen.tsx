@@ -1,11 +1,13 @@
 "use client";
 
 import { Avatar } from "@/components/layout/top-nav";
-import { feedItems, tagRank } from "@/lib/demo/synapse-data";
-import type { GoToScreen } from "@/lib/demo/synapse-types";
+import type { Concept } from "@/lib/api";
+import type { GoToScreen } from "@/lib/navigation/synapse-navigation";
 import { cn } from "@/lib/utils/cn";
 
-export function CommunityScreen({ goTo }: { goTo: GoToScreen }) {
+export function CommunityScreen({ concepts, goTo }: { concepts: Concept[]; goTo: GoToScreen }) {
+  const tagRank = getTagRank(concepts);
+
   return (
     <section className="py-6">
       <h1 className="mb-1 text-[18px] font-bold">训练成果社区</h1>
@@ -38,59 +40,83 @@ export function CommunityScreen({ goTo }: { goTo: GoToScreen }) {
             </button>
           </div>
           <div className="border-t hair">
-            {feedItems.map((item) => (
-              <article className="border-b hair py-4" key={item.title}>
+            {concepts.map((concept) => (
+              <article className="border-b hair py-4" key={concept.id}>
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="rounded border border-garden-100 bg-garden-50 px-1.5 py-0.5 text-[11px] text-garden-700">
-                      {item.type}
+                      {concept.status === "published" ? "题解" : "草稿"}
                     </span>
                     <button
                       className="text-left text-[14px] font-semibold transition hover:text-garden-700"
                       onClick={() => goTo("concept")}
                       type="button"
                     >
-                      {item.title}
+                      {concept.title}
                     </button>
                   </div>
-                  <p className="mt-1 text-[12px] text-slate-500">{item.description}</p>
+                  <p className="mt-1 text-[12px] text-slate-500">{concept.summary}</p>
                   <div className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1 text-[11px] text-slate-500 md:grid-cols-4">
                     <span>
-                      语言 <b className="text-slate-700">{item.language}</b>
+                      语言 <b className="text-slate-700">{getLanguage(concept)}</b>
                     </span>
                     <span>
-                      通过率 <b className="num text-slate-700">{item.passRate}</b>
+                      掌握度 <b className="num text-slate-700">{concept.mastery ?? 0}%</b>
                     </span>
                     <span>
-                      难度 <b className="text-slate-700">{item.difficulty}</b>
+                      可见性 <b className="text-slate-700">{concept.visibility}</b>
                     </span>
                     <span>
-                      作者 <b className="text-slate-700">{item.author}</b> · {item.time}
+                      作者 <b className="text-slate-700">Raymond</b> · {formatShortDate(concept.updatedAt)}
                     </span>
                   </div>
                   <div className="mt-2 flex flex-wrap items-center gap-1.5">
-                    {item.tags.map((tag) => (
+                    {concept.tags.map((tag) => (
                       <span className="rounded bg-slate-100 px-2 py-0.5 text-[11px] text-slate-500" key={tag}>
                         {tag}
                       </span>
                     ))}
                   </div>
                   <div className="mt-2 flex items-center gap-4 text-[12px] text-slate-400">
-                    <span>收藏 {item.likes}</span>
-                    <span>反馈 {item.comments}</span>
+                    <span>章节 {concept.sections.length}</span>
+                    <span>更新 {formatShortDate(concept.updatedAt)}</span>
                   </div>
                 </div>
               </article>
             ))}
           </div>
         </div>
-        <CommunityProfile />
+        <CommunityProfile tagRank={tagRank} />
       </div>
     </section>
   );
 }
 
-function CommunityProfile() {
+function getLanguage(concept: Concept) {
+  return concept.sections.find((section) => section.kind === "code")?.language ?? "Markdown";
+}
+
+function getTagRank(concepts: Concept[]) {
+  const counts = new Map<string, number>();
+
+  for (const concept of concepts) {
+    for (const tag of concept.tags) {
+      counts.set(tag, (counts.get(tag) ?? 0) + 1);
+    }
+  }
+
+  return [...counts.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5) as Array<[string, number]>;
+}
+
+function formatShortDate(value: string) {
+  return new Intl.DateTimeFormat("zh-CN", { month: "numeric", day: "numeric" }).format(
+    new Date(value),
+  );
+}
+
+function CommunityProfile({ tagRank }: { tagRank: Array<[string, number]> }) {
   return (
     <aside className="mt-8 lg:border-l lg:pl-8 hair">
       <div className="pt-4 text-center">

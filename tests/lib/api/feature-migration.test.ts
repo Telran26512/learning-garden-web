@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
@@ -23,4 +23,36 @@ describe("feature API migration", () => {
       expect(content, file).not.toContain("synapse-data");
     }
   });
+
+  it("keeps app, components, and features away from the legacy demo layer", () => {
+    for (const file of walkSourceFiles(["app", "components", "features"])) {
+      const content = readFileSync(join(process.cwd(), file), "utf8");
+      expect(content, file).not.toContain("@/lib/demo");
+      expect(content, file).not.toContain("synapse-data");
+    }
+  });
 });
+
+function walkSourceFiles(roots: string[]) {
+  const files: string[] = [];
+
+  for (const root of roots) {
+    visit(root);
+  }
+
+  return files.filter((file) => file.endsWith(".ts") || file.endsWith(".tsx"));
+
+  function visit(path: string) {
+    const absolute = join(process.cwd(), path);
+    const stat = statSync(absolute);
+
+    if (stat.isDirectory()) {
+      for (const entry of readdirSync(absolute)) {
+        visit(join(path, entry));
+      }
+      return;
+    }
+
+    files.push(path);
+  }
+}

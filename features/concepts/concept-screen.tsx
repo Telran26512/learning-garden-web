@@ -205,7 +205,7 @@ function ConceptImplementation({
   showRunOutput: boolean;
   onRun: () => void;
 }) {
-  const starterCode = codeSection?.body ?? "# 暂无代码片段";
+  const codeBody = codeSection?.body ?? "# 暂无代码片段";
 
   return (
     <div className="min-w-0 lg:border-l lg:pl-8 hair">
@@ -228,7 +228,7 @@ function ConceptImplementation({
             </div>
           </div>
           <pre className="code-scroll w-full rounded-md bg-slate-900 p-4 font-mono text-[12px] leading-6 text-slate-100">
-            {starterCode}
+            {codeBody}
           </pre>
         </div>
         <div className="mt-4 grid grid-cols-1 gap-x-5 gap-y-3 border-t hair pt-4 text-[12px] md:grid-cols-3">
