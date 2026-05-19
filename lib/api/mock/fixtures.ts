@@ -1,11 +1,14 @@
 import type {
   ActivityFeedItem,
   AdminOverview,
+  Backlink,
   Comment,
   Concept,
   Discussion,
+  KnowledgeGraph,
   ModerationQueueItem,
   NotificationItem,
+  Portfolio,
   PublicContentItem,
   PublicProfile,
   ReviewCard,
@@ -228,6 +231,70 @@ export const mockActivityFeed: ActivityFeedItem[] = [
     summary: "发布了线性回归公开题解",
     target: { id: "concept_linear_regression", label: "线性回归公开题解", type: "content" },
     type: "published_content",
+  },
+];
+
+export const mockGraph: KnowledgeGraph = {
+  edges: [
+    { from: "node_least_squares", id: "edge_ols_linreg", label: "supports", to: "node_linear_regression" },
+    { from: "node_gradient_descent", id: "edge_gd_linreg", label: "optimizes", to: "node_linear_regression" },
+    { from: "node_linear_regression", id: "edge_linreg_logreg", label: "prepares", to: "node_logistic_regression" },
+  ],
+  nodes: [
+    { id: "node_least_squares", label: "最小二乘", status: "mastered", x: 120, y: 130 },
+    { id: "node_gradient_descent", label: "梯度下降", status: "active", x: 120, y: 260 },
+    {
+      id: "node_linear_regression",
+      label: "线性回归",
+      relatedContentId: "concept_linear_regression",
+      status: "mastered",
+      x: 340,
+      y: 190,
+    },
+    { id: "node_logistic_regression", label: "逻辑回归", status: "next", x: 560, y: 190 },
+  ],
+};
+
+export const mockBacklinks: Backlink[] = [
+  {
+    id: "backlink_ols_to_linear_regression",
+    sourceId: "content_ols_vs_gd_experiment",
+    sourceTitle: "正规方程 vs 梯度下降实验",
+    targetId: "concept_linear_regression",
+    type: "extends",
+  },
+  {
+    id: "backlink_bias_note",
+    sourceId: "review_bias_column",
+    sourceTitle: "偏置列错因回放",
+    targetId: "concept_linear_regression",
+    type: "references",
+  },
+];
+
+export const mockPortfolios: Portfolio[] = [
+  {
+    evidence: [
+      {
+        description: "从正规方程推导到 NumPy 实现, 并解释偏置列。",
+        id: "evidence_linear_regression",
+        title: "线性回归实现",
+        type: "project",
+      },
+      {
+        description: "把 softmax + cross entropy 的梯度化简写成可复现笔记。",
+        id: "evidence_cross_entropy",
+        title: "交叉熵梯度推导",
+        type: "writing",
+      },
+    ],
+    highlights: [
+      { label: "公开内容", value: "8" },
+      { label: "概念链", value: "28" },
+      { label: "项目证据", value: "5" },
+    ],
+    owner: mockPublicAuthors.raymond,
+    updatedAt: "2026-05-19T00:00:00.000Z",
   },
 ];
 

@@ -6,6 +6,8 @@ export { ApiDomainError, createApiDomainError, normalizeApiError } from "./error
 export { contentApi } from "./modules/content";
 export { identityApi } from "./modules/identity";
 export { learningApi } from "./modules/learning";
+export { portfolioApi } from "./modules/portfolio";
+export { relationApi } from "./modules/relation";
 export { runtimeApi } from "./modules/runtime";
 export { socialApi } from "./modules/social";
 export { getApiTransport, setApiTransportForTests } from "./transport";

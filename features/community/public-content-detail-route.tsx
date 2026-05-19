@@ -5,13 +5,13 @@ import { AppShell } from "@/components/layout/app-shell";
 import { useSynapseNavigation } from "@/components/layout/use-synapse-navigation";
 import { StateSurface } from "@/components/ui/state-surface";
 import { PublicContentDetailScreen } from "@/features/community/public-content-detail-screen";
-import { contentApi, normalizeApiError, socialApi } from "@/lib/api";
-import type { Comment as ApiComment, PublicContentDetail } from "@/lib/api";
+import { contentApi, normalizeApiError, relationApi, socialApi } from "@/lib/api";
+import type { Backlink, Comment as ApiComment, PublicContentDetail } from "@/lib/api";
 
 export function PublicContentDetailRoute({ slug }: { slug: string }) {
   const goTo = useSynapseNavigation();
   const [state, setState] = useState<
-    | { comments: ApiComment[]; concept: PublicContentDetail; status: "ready" }
+    | { backlinks: Backlink[]; comments: ApiComment[]; concept: PublicContentDetail; status: "ready" }
     | { message: string; status: "error" }
     | { status: "loading" }
   >({ status: "loading" });
@@ -22,9 +22,12 @@ export function PublicContentDetailRoute({ slug }: { slug: string }) {
     contentApi
       .getPublicContent(slug)
       .then(async (concept) => {
-        const comments = await socialApi.getComments({ targetId: concept.id, targetType: "content" });
+        const [backlinks, comments] = await Promise.all([
+          relationApi.getBacklinks({ targetId: concept.id }),
+          socialApi.getComments({ targetId: concept.id, targetType: "content" }),
+        ]);
         if (isActive) {
-          setState({ comments, concept, status: "ready" });
+          setState({ backlinks, comments, concept, status: "ready" });
         }
       })
       .catch((error: unknown) => {
@@ -87,6 +90,7 @@ export function PublicContentDetailRoute({ slug }: { slug: string }) {
       ) : null}
       {state.status === "ready" ? (
         <PublicContentDetailScreen
+          backlinks={state.backlinks}
           comments={state.comments}
           concept={state.concept}
           onCreateComment={createComment}

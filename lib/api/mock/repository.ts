@@ -19,12 +19,15 @@ import type {
 import {
   mockActivityFeed,
   mockAdminOverview,
+  mockBacklinks,
   mockComments,
   mockConcepts,
   mockCurrentUser,
   mockDiscussions,
+  mockGraph,
   mockModerationQueue,
   mockNotifications,
+  mockPortfolios,
   mockPublicContent,
   mockPublicProfiles,
   mockReviewCards,
@@ -40,7 +43,10 @@ export function createMockApiRepository() {
   let comments = clone(mockComments);
   let concepts = clone(mockConcepts);
   let discussions = clone(mockDiscussions);
+  const graph = cloneOne(mockGraph);
   let notifications = clone(mockNotifications);
+  const backlinks = clone(mockBacklinks);
+  const portfolios = clone(mockPortfolios);
   const publicContent = clone(mockPublicContent);
   let publicProfiles = clone(mockPublicProfiles);
   const roadmapTasks = clone(mockRoadmapTasks);
@@ -158,6 +164,9 @@ export function createMockApiRepository() {
       requireAdmin(currentUser);
       return { ...mockAdminOverview };
     },
+    getBacklinks(targetId: string) {
+      return clone(backlinks.filter((item) => item.targetId === targetId));
+    },
     getConcept(id: string) {
       requireUser(currentUser);
       const concept = concepts.find((item) => item.id === id);
@@ -227,9 +236,21 @@ export function createMockApiRepository() {
     getFeed() {
       return clone(activityFeed);
     },
+    getGraph() {
+      return cloneOne(graph);
+    },
     getNotifications() {
       requireUser(currentUser);
       return clone(notifications);
+    },
+    getPortfolio(userId: string) {
+      const portfolio = portfolios.find((item) => item.owner.id === userId);
+
+      if (!portfolio) {
+        throw createApiDomainError(404, "not_found", "Portfolio not found");
+      }
+
+      return cloneOne(portfolio);
     },
     getReviewQueue() {
       requireUser(currentUser);

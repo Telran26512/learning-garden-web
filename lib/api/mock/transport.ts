@@ -137,6 +137,19 @@ function handleRequest(
     return repository.deleteComment(decodeURIComponent(commentMatch[1]!));
   }
 
+  if (method === "GET" && pathname === "/relations/graph") {
+    return repository.getGraph();
+  }
+
+  if (method === "GET" && pathname === "/relations/backlinks") {
+    return repository.getBacklinks(searchParams.get("targetId") ?? "");
+  }
+
+  const portfolioMatch = pathname?.match(/^\/portfolio\/([^/]+)$/);
+  if (portfolioMatch && method === "GET") {
+    return repository.getPortfolio(decodeURIComponent(portfolioMatch[1]!));
+  }
+
   if (method === "POST" && pathname === "/runtime/python-runs") {
     const request = body as { code?: string };
     return repository.runPython(request.code ?? "");

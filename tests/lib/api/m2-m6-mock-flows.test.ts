@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { contentApi, learningApi, setApiTransportForTests, socialApi } from "@/lib/api";
+import {
+  contentApi,
+  learningApi,
+  portfolioApi,
+  relationApi,
+  setApiTransportForTests,
+  socialApi,
+} from "@/lib/api";
 import { createMockApiRepository } from "@/lib/api/mock/repository";
 import { createMockTransport } from "@/lib/api/mock/transport";
 
@@ -140,5 +147,25 @@ describe("M4 social mock flows", () => {
     expect(discussions).toEqual(
       expect.arrayContaining([expect.objectContaining({ id: discussion.id })]),
     );
+  });
+});
+
+describe("M5 relation and portfolio mock flows", () => {
+  it("loads graph, backlinks, and portfolio evidence", async () => {
+    useFreshMockTransport();
+
+    const graph = await relationApi.getGraph();
+    const backlinks = await relationApi.getBacklinks({ targetId: "concept_linear_regression" });
+    const portfolio = await portfolioApi.getPortfolio("user_raymond");
+
+    expect(graph.nodes).toEqual(
+      expect.arrayContaining([expect.objectContaining({ id: "node_linear_regression" })]),
+    );
+    expect(graph.edges.length).toBeGreaterThan(0);
+    expect(backlinks).toEqual(
+      expect.arrayContaining([expect.objectContaining({ targetId: "concept_linear_regression" })]),
+    );
+    expect(portfolio.owner.id).toBe("user_raymond");
+    expect(portfolio.evidence.length).toBeGreaterThan(0);
   });
 });

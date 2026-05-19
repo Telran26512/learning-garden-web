@@ -2,15 +2,17 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import type { Comment as ApiComment, PublicContentDetail } from "@/lib/api";
+import type { Backlink, Comment as ApiComment, PublicContentDetail } from "@/lib/api";
 
 export function PublicContentDetailScreen({
+  backlinks,
   comments,
   concept,
   onCreateComment,
   onDeleteComment,
   onReplyToComment,
 }: {
+  backlinks: Backlink[];
   comments: ApiComment[];
   concept: PublicContentDetail;
   onCreateComment: (body: string) => Promise<void>;
@@ -47,45 +49,60 @@ export function PublicContentDetailScreen({
           ))}
         </div>
       </header>
-      {concept.sections.length === 0 ? (
-        <section className="border-b hair py-8">
-          <div className="sect-label">Mock Detail</div>
-          <h2 className="mt-2 text-[18px] font-semibold">这条公开内容还没有详细章节</h2>
-          <p className="mt-2 max-w-[62ch] text-[13px] leading-relaxed text-slate-500">
-            当前 mock API 已能解析公开列表里的所有 slug。后端内容详情接入后，这里会显示数学推导、代码和论文章节。
-          </p>
-        </section>
-      ) : (
-        <div className="divide-y hair">
-          {concept.sections.map((section) => (
-            <section className="grid gap-5 py-8 lg:grid-cols-[150px_minmax(0,1fr)]" key={section.id}>
-              <div>
-                <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
-                  {section.kind}
-                </div>
-                {section.sourceTitle ? (
-                  <p className="mt-2 max-w-[16ch] text-[12px] leading-relaxed text-slate-400">
-                    {section.sourceTitle}
-                    {section.sourceMeta ? ` · ${section.sourceMeta}` : ""}
-                  </p>
-                ) : null}
-              </div>
-              <div>
-                <h2 className="text-[19px] font-semibold">{section.title}</h2>
-                {section.kind === "code" ? (
-                  <pre className="code-scroll mt-4 overflow-x-auto rounded-xl bg-slate-950 p-4 text-[12px] leading-relaxed text-slate-100">
-                    <code>{section.body}</code>
-                  </pre>
-                ) : (
-                  <p className="mt-3 max-w-[78ch] whitespace-pre-wrap text-[14px] leading-relaxed text-slate-600">
-                    {section.body}
-                  </p>
-                )}
-              </div>
+      <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_280px]">
+        <div>
+          {concept.sections.length === 0 ? (
+            <section className="border-b hair py-8">
+              <div className="sect-label">Mock Detail</div>
+              <h2 className="mt-2 text-[18px] font-semibold">这条公开内容还没有详细章节</h2>
+              <p className="mt-2 max-w-[62ch] text-[13px] leading-relaxed text-slate-500">
+                当前 mock API 已能解析公开列表里的所有 slug。后端内容详情接入后，这里会显示数学推导、代码和论文章节。
+              </p>
             </section>
-          ))}
+          ) : (
+            <div className="divide-y hair">
+              {concept.sections.map((section) => (
+                <section className="grid gap-5 py-8 lg:grid-cols-[150px_minmax(0,1fr)]" key={section.id}>
+                  <div>
+                    <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
+                      {section.kind}
+                    </div>
+                    {section.sourceTitle ? (
+                      <p className="mt-2 max-w-[16ch] text-[12px] leading-relaxed text-slate-400">
+                        {section.sourceTitle}
+                        {section.sourceMeta ? ` · ${section.sourceMeta}` : ""}
+                      </p>
+                    ) : null}
+                  </div>
+                  <div>
+                    <h2 className="text-[19px] font-semibold">{section.title}</h2>
+                    {section.kind === "code" ? (
+                      <pre className="code-scroll mt-4 overflow-x-auto rounded-xl bg-slate-950 p-4 text-[12px] leading-relaxed text-slate-100">
+                        <code>{section.body}</code>
+                      </pre>
+                    ) : (
+                      <p className="mt-3 max-w-[78ch] whitespace-pre-wrap text-[14px] leading-relaxed text-slate-600">
+                        {section.body}
+                      </p>
+                    )}
+                  </div>
+                </section>
+              ))}
+            </div>
+          )}
         </div>
-      )}
+        <aside className="py-8 lg:border-l lg:pl-7 hair">
+          <div className="sect-label">Backlinks</div>
+          <div className="mt-3 divide-y hair border-y hair">
+            {backlinks.map((backlink) => (
+              <div className="py-3" key={backlink.id}>
+                <div className="text-[13px] font-medium">{backlink.sourceTitle}</div>
+                <div className="mt-1 text-[11px] text-slate-400">{backlink.type}</div>
+              </div>
+            ))}
+          </div>
+        </aside>
+      </div>
       <section className="border-t hair py-8">
         <div className="mb-3 flex items-baseline justify-between">
           <h2 className="text-[19px] font-semibold">评论与讨论</h2>

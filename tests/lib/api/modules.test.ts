@@ -1,5 +1,14 @@
 import { describe, expect, it } from "vitest";
-import { adminApi, contentApi, identityApi, learningApi, runtimeApi, socialApi } from "@/lib/api";
+import {
+  adminApi,
+  contentApi,
+  identityApi,
+  learningApi,
+  portfolioApi,
+  relationApi,
+  runtimeApi,
+  socialApi,
+} from "@/lib/api";
 
 describe("domain API modules", () => {
   it("loads identity, content, learning, runtime, and admin data through facades", async () => {
@@ -19,6 +28,12 @@ describe("domain API modules", () => {
     await expect(socialApi.getNotifications()).resolves.toEqual(
       expect.arrayContaining([expect.objectContaining({ id: "notification_comment_reply" })]),
     );
+    await expect(relationApi.getGraph()).resolves.toMatchObject({
+      nodes: expect.arrayContaining([expect.objectContaining({ id: "node_linear_regression" })]),
+    });
+    await expect(portfolioApi.getPortfolio("user_raymond")).resolves.toMatchObject({
+      owner: expect.objectContaining({ id: "user_raymond" }),
+    });
     await expect(learningApi.getRoadmap()).resolves.toEqual(
       expect.arrayContaining([expect.objectContaining({ id: "task_ols_bias" })]),
     );
