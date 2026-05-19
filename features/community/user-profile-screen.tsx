@@ -23,12 +23,9 @@ export function UserProfileScreen({ profile }: { profile: PublicProfile }) {
               {profile.bio}
             </p>
           </div>
-          <button
-            className="rounded-md border border-garden-600 px-4 py-2 text-[12px] font-medium text-garden-700"
-            type="button"
-          >
-            {profile.isFollowing ? "已关注" : "关注"}
-          </button>
+          <div className="rounded-md border hair bg-[var(--paper)]/70 px-4 py-2 text-[12px] font-medium text-slate-500">
+            公开主页 · follow 操作将在 M4 接入
+          </div>
         </div>
         <div className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-4">
           <ProfileMetric label="等级" value={`Lv.${profile.level}`} />

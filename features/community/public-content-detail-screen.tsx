@@ -31,31 +31,41 @@ export function PublicContentDetailScreen({ concept }: { concept: Concept }) {
           ))}
         </div>
       </div>
-      <div className="mt-5 grid gap-4">
-        {concept.sections.map((section) => (
-          <section className="rounded-[18px] border hair bg-white/60 p-5" key={section.id}>
-            <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
-              {section.kind}
-            </div>
-            <h2 className="mt-1 text-[17px] font-semibold">{section.title}</h2>
-            {section.sourceTitle ? (
-              <p className="mt-1 text-[12px] text-slate-400">
-                {section.sourceTitle}
-                {section.sourceMeta ? ` · ${section.sourceMeta}` : ""}
-              </p>
-            ) : null}
-            {section.kind === "code" ? (
-              <pre className="mt-3 overflow-x-auto rounded-xl bg-slate-950 p-4 text-[12px] leading-relaxed text-slate-100">
-                <code>{section.body}</code>
-              </pre>
-            ) : (
-              <p className="mt-3 whitespace-pre-wrap text-[13px] leading-relaxed text-slate-600">
-                {section.body}
-              </p>
-            )}
-          </section>
-        ))}
-      </div>
+      {concept.sections.length === 0 ? (
+        <div className="mt-5 rounded-[18px] border hair bg-white/55 p-6">
+          <div className="sect-label">Mock Detail</div>
+          <h2 className="mt-2 text-[18px] font-semibold">这条公开内容还没有详细章节</h2>
+          <p className="mt-2 max-w-[62ch] text-[13px] leading-relaxed text-slate-500">
+            当前 mock API 已能解析公开列表里的所有 slug。后端内容详情接入后，这里会显示数学推导、代码和论文章节。
+          </p>
+        </div>
+      ) : (
+        <div className="mt-5 grid gap-4">
+          {concept.sections.map((section) => (
+            <section className="rounded-[18px] border hair bg-white/60 p-5" key={section.id}>
+              <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
+                {section.kind}
+              </div>
+              <h2 className="mt-1 text-[17px] font-semibold">{section.title}</h2>
+              {section.sourceTitle ? (
+                <p className="mt-1 text-[12px] text-slate-400">
+                  {section.sourceTitle}
+                  {section.sourceMeta ? ` · ${section.sourceMeta}` : ""}
+                </p>
+              ) : null}
+              {section.kind === "code" ? (
+                <pre className="mt-3 overflow-x-auto rounded-xl bg-slate-950 p-4 text-[12px] leading-relaxed text-slate-100">
+                  <code>{section.body}</code>
+                </pre>
+              ) : (
+                <p className="mt-3 whitespace-pre-wrap text-[13px] leading-relaxed text-slate-600">
+                  {section.body}
+                </p>
+              )}
+            </section>
+          ))}
+        </div>
+      )}
     </article>
   );
 }

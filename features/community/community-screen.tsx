@@ -2,15 +2,10 @@
 
 import Link from "next/link";
 import { Avatar } from "@/components/layout/top-nav";
-import type { Concept, PublicContentItem } from "@/lib/api";
+import type { PublicContentItem } from "@/lib/api";
 import { cn } from "@/lib/utils/cn";
 
-type CommunityScreenProps =
-  | { concepts?: never; content: PublicContentItem[]; goTo?: never }
-  | { concepts: Concept[]; content?: never; goTo?: unknown };
-
-export function CommunityScreen(props: CommunityScreenProps) {
-  const content = props.content ?? props.concepts.map(conceptToPublicContent);
+export function CommunityScreen({ content }: { content: PublicContentItem[] }) {
   const tagRank = getTagRank(content);
 
   return (
@@ -47,61 +42,71 @@ export function CommunityScreen(props: CommunityScreenProps) {
               ⚲ 筛选
             </button>
           </div>
-          <div className="border-t hair">
-            {content.map((item) => (
-              <article className="border-b hair py-4" key={item.id}>
-                <div className="min-w-0 flex-1">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="rounded border border-garden-100 bg-garden-50 px-1.5 py-0.5 text-[11px] text-garden-700">
-                      {getContentTypeLabel(item.contentType)}
-                    </span>
-                    <Link
-                      href={`/community/concepts/${item.slug}`}
-                      className="text-left text-[14px] font-semibold transition hover:text-garden-700"
-                    >
-                      {item.title}
-                    </Link>
-                  </div>
-                  <p className="mt-1 text-[12px] text-slate-500">{item.excerpt}</p>
-                  <div className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1 text-[11px] text-slate-500 md:grid-cols-4">
-                    <span>
-                      类型 <b className="text-slate-700">{getContentTypeLabel(item.contentType)}</b>
-                    </span>
-                    <span>
-                      评论 <b className="num text-slate-700">{item.commentCount}</b>
-                    </span>
-                    <span>
-                      可见性 <b className="text-slate-700">{item.visibility}</b>
-                    </span>
-                    <span>
-                      作者{" "}
-                      <Link
-                        className="font-bold text-slate-700 hover:text-garden-700"
-                        href={`/users/${item.author.id}`}
-                      >
-                        {item.author.displayName}
-                      </Link>{" "}
-                      · {formatShortDate(item.updatedAt)}
-                    </span>
-                  </div>
-                  <div className="mt-2 flex flex-wrap items-center gap-1.5">
-                    {item.tags.map((tag) => (
-                      <span
-                        className="rounded bg-slate-100 px-2 py-0.5 text-[11px] text-slate-500"
-                        key={tag}
-                      >
-                        {tag}
+          {content.length === 0 ? (
+            <div className="rounded-[18px] border hair bg-white/55 p-6">
+              <div className="sect-label">Empty Feed</div>
+              <h2 className="mt-2 text-[18px] font-semibold">暂时没有公开内容</h2>
+              <p className="mt-2 text-[13px] text-slate-500">
+                等后端接入后，这里会展示所有 `visibility=public` 的概念、论文和实验。
+              </p>
+            </div>
+          ) : (
+            <div className="border-t hair">
+              {content.map((item) => (
+                <article className="border-b hair py-4" key={item.id}>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="rounded border border-garden-100 bg-garden-50 px-1.5 py-0.5 text-[11px] text-garden-700">
+                        {getContentTypeLabel(item.contentType)}
                       </span>
-                    ))}
+                      <Link
+                        href={`/community/concepts/${item.slug}`}
+                        className="text-left text-[14px] font-semibold transition hover:text-garden-700"
+                      >
+                        {item.title}
+                      </Link>
+                    </div>
+                    <p className="mt-1 text-[12px] text-slate-500">{item.excerpt}</p>
+                    <div className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1 text-[11px] text-slate-500 md:grid-cols-4">
+                      <span>
+                        类型 <b className="text-slate-700">{getContentTypeLabel(item.contentType)}</b>
+                      </span>
+                      <span>
+                        评论 <b className="num text-slate-700">{item.commentCount}</b>
+                      </span>
+                      <span>
+                        可见性 <b className="text-slate-700">{item.visibility}</b>
+                      </span>
+                      <span>
+                        作者{" "}
+                        <Link
+                          className="font-bold text-slate-700 hover:text-garden-700"
+                          href={`/users/${item.author.id}`}
+                        >
+                          {item.author.displayName}
+                        </Link>{" "}
+                        · {formatShortDate(item.updatedAt)}
+                      </span>
+                    </div>
+                    <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                      {item.tags.map((tag) => (
+                        <span
+                          className="rounded bg-slate-100 px-2 py-0.5 text-[11px] text-slate-500"
+                          key={tag}
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                    <div className="mt-2 flex items-center gap-4 text-[12px] text-slate-400">
+                      <span>作者等级 Lv.{item.author.level}</span>
+                      <span>更新 {formatShortDate(item.updatedAt)}</span>
+                    </div>
                   </div>
-                  <div className="mt-2 flex items-center gap-4 text-[12px] text-slate-400">
-                    <span>作者等级 Lv.{item.author.level}</span>
-                    <span>更新 {formatShortDate(item.updatedAt)}</span>
-                  </div>
-                </div>
-              </article>
-            ))}
-          </div>
+                </article>
+              ))}
+            </div>
+          )}
         </div>
         <CommunityProfile tagRank={tagRank} />
       </div>
@@ -117,28 +122,6 @@ function getContentTypeLabel(type: PublicContentItem["contentType"]) {
   };
 
   return labels[type];
-}
-
-function conceptToPublicContent(concept: Concept): PublicContentItem {
-  return {
-    author: {
-      avatarUrl: "/avatar.jpg",
-      displayName: "Raymond",
-      id: concept.ownerId,
-      level: 6,
-    },
-    commentCount: 0,
-    contentType: "concept",
-    createdAt: concept.createdAt,
-    excerpt: concept.summary,
-    id: `content_${concept.id}`,
-    ownerId: concept.ownerId,
-    slug: concept.slug,
-    tags: concept.tags,
-    title: concept.title,
-    updatedAt: concept.updatedAt,
-    visibility: "public",
-  };
 }
 
 function getTagRank(content: PublicContentItem[]) {

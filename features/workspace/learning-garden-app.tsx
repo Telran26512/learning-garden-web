@@ -7,7 +7,12 @@ import { ConceptScreen } from "@/features/concepts/concept-screen";
 import { ReviewScreen } from "@/features/review/review-screen";
 import { StudioScreen } from "@/features/studio/studio-screen";
 import { WorkspaceScreen } from "@/features/workspace/workspace-screen";
-import { mockConcepts, mockReviewCards, mockRoadmapTasks } from "@/lib/api/mock/fixtures";
+import {
+  mockConcepts,
+  mockPublicContent,
+  mockReviewCards,
+  mockRoadmapTasks,
+} from "@/lib/api/mock/fixtures";
 import type { Screen } from "@/lib/navigation/synapse-navigation";
 
 export function LearningGardenApp() {
@@ -45,7 +50,7 @@ export function LearningGardenApp() {
             showRunOutput={showRunOutput}
           />
         ) : null}
-        {screen === "community" ? <CommunityScreen concepts={mockConcepts} goTo={goTo} /> : null}
+        {screen === "community" ? <CommunityScreen content={mockPublicContent} /> : null}
         {screen === "review" ? (
           <ReviewScreen
             cards={mockReviewCards}

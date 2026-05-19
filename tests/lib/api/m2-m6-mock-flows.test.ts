@@ -36,7 +36,10 @@ describe("M2 public content mock flows", () => {
 
     const feed = await contentApi.listPublicContent();
     const details = await Promise.all(feed.map((item) => contentApi.getPublicContent(item.slug)));
+    const fallbackDetail = await contentApi.getPublicContent("cross-entropy-gradient");
 
     expect(details.map((detail) => detail.slug).sort()).toEqual(feed.map((item) => item.slug).sort());
+    expect(fallbackDetail.sections).toEqual([]);
+    expect(fallbackDetail.summary).toContain("softmax");
   });
 });
