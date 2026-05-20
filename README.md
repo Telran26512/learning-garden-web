@@ -6,11 +6,11 @@ This repository contains the Next.js frontend for Synapse: the public landing pa
 
 ## Current Scope
 
-The current frontend focuses on P1 authentication and the Synapse marketing surface:
+The current frontend focuses on P1 authentication, the Synapse marketing surface, and a first-pass authenticated workspace:
 
-- Landing page with product screenshot mockup, graph demo, community examples, pricing, FAQ, and scroll reveal polish.
-- `/auth` page with email/password login, registration, password strength feedback, consent copy, and GitHub login entry point UI.
-- `/app` protected route with a basic route guard and current identity lookup.
+- Componentized landing page with product screenshot mockup, graph demo, community examples, pricing, FAQ, and scroll reveal polish.
+- `/auth` page with email/password login, registration, password strength feedback, consent copy, GitHub login entry point UI, and workspace preview artwork.
+- `/app` protected route with a basic route guard, current identity lookup, workspace header, roadmap, daily tasks, contribution activity, and notifications panels.
 - Frontend auth client for register, login, refresh session, logout, and `/auth/me`.
 - Legal placeholder pages for `/terms` and `/privacy`.
 - Development guide in `docs/synapse-development-guide.md`.
@@ -51,7 +51,22 @@ pnpm dev
 Open:
 
 ```text
-http://localhost:3000
+http://127.0.0.1:3000
+```
+
+Use `pnpm dev` for daily frontend work. It runs one fixed development server on `127.0.0.1:3000` with hot reload. Do not use `pnpm start` for development; it serves the last production build and will not reflect file edits until you rebuild.
+
+If the browser keeps showing old code or another port is already occupied, clean up stale local servers:
+
+```bash
+pnpm dev:stop
+pnpm dev
+```
+
+For a full cache reset:
+
+```bash
+pnpm dev:clean
 ```
 
 Run the backend separately from the server repository:
@@ -74,9 +89,11 @@ NEXT_PUBLIC_API_URL=http://localhost:18080
 ## Scripts
 
 ```bash
-pnpm dev           # Start local Next.js dev server
+pnpm dev           # Start fixed local Next.js dev server at 127.0.0.1:3000
+pnpm dev:stop      # Stop stale local frontend servers on ports 3000-3003
+pnpm dev:clean     # Stop stale servers, clear .next, then start dev
 pnpm build         # Production build
-pnpm start         # Serve production build
+pnpm start         # Serve production build at 127.0.0.1:3100
 pnpm lint          # Run ESLint
 pnpm test          # Run Vitest
 pnpm typecheck     # Generate Next route types and run tsc
@@ -114,10 +131,18 @@ app/
   terms/page.tsx
   globals.css
 components/
+  auth/             # Auth form, GitHub icon, and preview mockup
   landing/          # Landing page graph, particles, layout
   synapse/          # Brand primitives
+  workspace/        # Protected workspace dashboard panels
 lib/
   auth/             # Auth API client, session store, password strength
+  hooks/            # Shared frontend hooks
+  types/            # Shared UI/domain types
+public/
+  auth-workspace-preview.jpg
+scripts/
+  kill-dev-ports.mjs
 docs/
   synapse-development-guide.md
 ```

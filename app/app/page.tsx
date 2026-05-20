@@ -1,8 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { ContributionsPanel } from "@/components/workspace/contributions-panel";
+import { WorkspaceHeader } from "@/components/workspace/header";
+import { InlineStatusBar } from "@/components/workspace/inline-status-bar";
+import { NotificationsPanel } from "@/components/workspace/notifications-panel";
+import { RoadmapPanel } from "@/components/workspace/roadmap-panel";
+import { TodayPanel } from "@/components/workspace/today-panel";
 import { SynapseLogo } from "@/components/synapse/synapse-logo";
 import {
   logout,
@@ -49,41 +54,39 @@ export default function AppHomePage() {
     );
   }
 
-  return (
-    <main className="sn-app-shell">
-      <header className="sn-app-topbar">
-        <Link className="sn-auth-brand" href="/">
-          <SynapseLogo size={22} />
-          <span>Synapse</span>
-        </Link>
-        <button
-          className="sn-btn sn-btn-ghost"
-          onClick={handleLogout}
-          type="button"
-        >
-          退出登录
-        </button>
-      </header>
+  const displayName = user?.displayName || user?.handle || "李哲";
+  const shortName = displayName.slice(-1);
 
-      <section className="sn-app-welcome">
-        <div>
-          <p className="sn-auth-eyebrow">● Workspace</p>
-          <h1>欢迎回来,{user?.displayName || user?.handle}。</h1>
-          <p>
-            当前已通过 <code>/auth/me</code> 访问个人身份。刷新页面时,前端会用
-            refresh cookie 调用 <code>/auth/refresh</code> 重新获得 access
-            token。
-          </p>
+  return (
+    <main className="min-h-dvh bg-base text-text-primary">
+      <WorkspaceHeader
+        displayName={displayName}
+        onLogout={handleLogout}
+        shortName={shortName}
+      />
+
+      <div className="mx-auto grid max-w-[1840px] gap-8 px-4 pb-0 pt-12 sm:px-6 lg:grid-cols-[minmax(0,1fr)_470px] lg:px-11">
+        <div className="min-w-0">
+          <section className="max-w-[920px]">
+            <p className="mb-1 text-[14px] font-normal leading-4 text-text-secondary md:text-[15px]">
+              Stage 2 · Week 4&nbsp;&nbsp;·&nbsp;&nbsp;Transformer 精读
+            </p>
+            <h1 className="text-[22px] font-medium leading-6 text-white md:text-[26px]">
+              还有 <span className="font-semibold text-white">3 天</span>{" "}
+              到阶段目标
+            </h1>
+          </section>
+          <InlineStatusBar />
+
+          <RoadmapPanel />
         </div>
-        <div className="sn-card sn-app-identity">
-          <span>当前身份</span>
-          <strong>@{user?.handle}</strong>
-          <p>{user?.email}</p>
-          <small>
-            role: {user?.role} · status: {user?.status}
-          </small>
-        </div>
-      </section>
+
+        <aside className="grid content-start gap-6">
+          <TodayPanel />
+          <ContributionsPanel />
+          <NotificationsPanel />
+        </aside>
+      </div>
     </main>
   );
 }
