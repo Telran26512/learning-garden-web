@@ -4,6 +4,12 @@ node_modules/
 *.tsbuildinfo
 .idea/
 
+# Keep GitHub focused on the frontend project. README is the only Markdown
+# document intended to be tracked.
+*.md
+!README.md
+*.html
+
 # Local prototype references supplied by the user.
 Synapse/
 Synapse · Print.pdf
