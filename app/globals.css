@@ -1,33 +1,33 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Geist+Mono:wght@400;500;600&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=STIX+Two+Text:wght@400;500;600;700&family=STIX+Two+Math&family=Noto+Serif+SC:wght@400;500;600;700;900&family=Geist+Mono:wght@400;500;600&display=swap");
 @import "tailwindcss";
 
 @theme {
-  --color-text-primary: #f4f4f7;
-  --color-text-secondary: #9ca3af;
-  --color-text-muted: #6b7280;
-  --color-text-soft: #d1d5db;
-  --color-text-strong: #e5e7eb;
+  --color-text-primary: #1a1a1a;
+  --color-text-secondary: #666666;
+  --color-text-muted: #999999;
+  --color-text-soft: #333333;
+  --color-text-strong: #1a1a1a;
   --color-text-dim: #3f3f3f;
   --color-ink-base: #0a0a0a;
   --color-neutral-dark: #111827;
   --color-slate-hover: #4b5563;
   --color-slate-strong: #374151;
-  --color-base: #050505;
-  --color-elevated: #0a0a0a;
-  --color-overlay: #111111;
-  --color-surface-strong: #1f1f1f;
-  --color-surface-hover: #1a1a1a;
-  --color-chip: #161616;
+  --color-base: #ffffff;
+  --color-elevated: #fafafa;
+  --color-overlay: #ffffff;
+  --color-surface-strong: #f6f6f6;
+  --color-surface-hover: #f2f2f2;
+  --color-chip: #fafafa;
   --color-muted: #6b7280;
-  --color-border-subtle: #1f1f1f;
-  --color-border-strong: #2f2f2f;
-  --color-border-muted: #6b7280;
-  --color-border-emphasis: #3f3f3f;
-  --color-border-card: #2a2a2a;
-  --color-border-card-hover: #3a3a3a;
-  --color-border-chip: #242424;
+  --color-border-subtle: #e0e0e0;
+  --color-border-strong: #d0d0d0;
+  --color-border-muted: #bdbdbd;
+  --color-border-emphasis: #a8a8a8;
+  --color-border-card: #e0e0e0;
+  --color-border-card-hover: #d0d0d0;
+  --color-border-chip: #e0e0e0;
   --color-auth-ink: #1f2a26;
-  --color-auth-paper: #f4f2ee;
+  --color-auth-paper: #fafafa;
   --color-auth-subtle: #e5e7eb;
   --color-auth-hover: #f9fafb;
   --color-success: #3ddc97;
@@ -36,44 +36,59 @@
 
 :root,
 [data-theme="dark"] {
-  --bg-base: #07070b;
-  --bg-elevated: #0e0e14;
-  --bg-overlay: #15151e;
-  --bg-glass: rgba(20, 20, 30, 0.68);
-  --border-subtle: rgba(255, 255, 255, 0.06);
-  --border-strong: rgba(255, 255, 255, 0.12);
-  --border-focus: rgba(168, 168, 179, 0.55);
-  --text-primary: #f4f4f7;
-  --text-secondary: #a8a8b3;
-  --text-muted: #6b6b78;
+  --syn-accent: #1f4332;
+  --syn-accent-hover: #163626;
+  --syn-accent-soft: rgba(31, 67, 50, 0.08);
+  --syn-reading-bg: #ffffff;
+  --syn-reading-surface: #fafafa;
+  --syn-reading-ink: #1a1a1a;
+  --syn-reading-secondary: #666666;
+  --syn-reading-muted: #999999;
+  --syn-working-bg: #ffffff;
+  --syn-working-surface: #fafafa;
+  --syn-working-rail: #ffffff;
+  --syn-working-ink: #1a1a1a;
+  --syn-working-secondary: #666666;
+  --syn-working-muted: #999999;
+  --syn-hairline-light: #e0e0e0;
+  --syn-hairline-dark: #e0e0e0;
+  --syn-radius: 2px;
+  --syn-leading-body: 1.6;
+  --syn-leading-ui: 1.4;
+  --syn-font-display:
+    "STIX Two Text", Charter, "Noto Serif SC", "Songti SC", "STSong", serif;
+  --syn-font-body:
+    "STIX Two Text", Charter, "Noto Serif SC", "Songti SC", "STSong", serif;
+  --syn-font-math: "STIX Two Math", "Latin Modern Math", serif;
+  --syn-font-mono:
+    "Latin Modern Mono", "JuliaMono", "iA Writer Mono S", "Geist Mono",
+    ui-monospace, monospace;
+  --bg-base: #ffffff;
+  --bg-elevated: #fafafa;
+  --bg-overlay: #ffffff;
+  --bg-glass: rgba(255, 255, 255, 0.92);
+  --border-subtle: #e0e0e0;
+  --border-strong: #d0d0d0;
+  --border-focus: rgba(31, 67, 50, 0.45);
+  --text-primary: #1a1a1a;
+  --text-secondary: #666666;
+  --text-muted: #999999;
   --color-math: #3ddc97;
   --color-code: #f5b85b;
   --color-paper: #6fa8dc;
-  --color-concept: #4abeff;
-  --brand-cyan: var(--color-concept);
-  --brand-violet: #60a5fa;
-  --brand-pink: #e07856;
-  --gradient-synapse: linear-gradient(120deg, #f4f4f7 0%, #a8a8b3 100%);
-  --gradient-synapse-soft: linear-gradient(
-    120deg,
-    rgba(255, 255, 255, 0.08),
-    rgba(168, 168, 179, 0.08)
-  );
+  --color-concept: #b39ddb;
+  --brand-ink: var(--syn-accent);
   --block-math: var(--color-math);
   --block-code: var(--color-code);
   --block-paper: var(--color-paper);
   --success: #34d399;
-  --warning: #f59e0b;
+  --warning: #8a6d1e;
   --danger: #f87171;
-  --info: #60a5fa;
-  --glow-cyan: none;
-  --inset-top: inset 0 1px 0 rgba(255, 255, 255, 0.05);
-  --font-sans:
-    "Inter", "HarmonyOS Sans SC", "PingFang SC", "Noto Sans SC", system-ui,
-    sans-serif;
-  --font-display: "Fraunces", "Inter", "HarmonyOS Sans SC", serif;
-  --font-mono:
-    "Geist Mono", "JetBrains Mono", "SF Mono", ui-monospace, monospace;
+  --info: #0b2545;
+  --inset-top: none;
+  --font-sans: var(--syn-font-body);
+  --font-display: var(--syn-font-display);
+  --font-mono: var(--syn-font-mono);
 }
 
 * {
@@ -92,7 +107,7 @@ body {
   background: var(--bg-base);
   color: var(--text-primary);
   font-family: var(--font-sans);
-  font-feature-settings: "cv11", "ss01", "palt";
+  font-feature-settings: "palt";
   -webkit-font-smoothing: antialiased;
   text-rendering: geometricPrecision;
 }
@@ -106,15 +121,166 @@ a {
   text-decoration: none;
 }
 
-button,
-input,
-textarea,
-select {
-  font: inherit;
+.syn-reading-mode {
+  background: var(--syn-reading-bg);
+  color: var(--syn-reading-ink);
+  font-family: var(--syn-font-body);
 }
 
-button {
-  border: 0;
+.syn-working-mode {
+  background: var(--syn-working-bg);
+  color: var(--syn-working-ink);
+  font-family: var(--syn-font-body);
+}
+
+.syn-title {
+  font-family: var(--syn-font-display);
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+.syn-kicker {
+  font-family: var(--syn-font-body);
+  font-size: 11px;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.syn-hairline-light {
+  border-color: var(--syn-hairline-light);
+}
+
+.syn-hairline-dark {
+  border-color: var(--syn-hairline-dark);
+}
+
+.syn-link-mark path {
+  stroke-dasharray: 42;
+  stroke-dashoffset: 42;
+  transition: stroke-dashoffset 240ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.syn-link-mark-trigger:hover .syn-link-mark path,
+.syn-link-mark-trigger:focus-visible .syn-link-mark path {
+  stroke-dashoffset: 0;
+}
+
+.community-reading article,
+.community-reading aside > section,
+.community-reading nav a,
+.community-reading button {
+  box-shadow: none;
+  border-radius: var(--syn-radius);
+}
+
+.community-reading article,
+.community-reading aside > section {
+  background: transparent;
+  border-color: var(--syn-hairline-light);
+}
+
+.community-reading .text-white,
+.community-reading .text-text-primary,
+.community-reading .text-text-strong,
+.community-reading .text-text-soft {
+  color: var(--syn-reading-ink);
+}
+
+.community-reading .text-text-secondary {
+  color: var(--syn-reading-secondary);
+}
+
+.community-reading .text-text-muted {
+  color: var(--syn-reading-muted);
+}
+
+.community-reading .border-border-subtle,
+.community-reading .border-border-strong {
+  border-color: var(--syn-hairline-light);
+}
+
+.syn-working-mode .text-white,
+.syn-working-mode .text-text-primary,
+.syn-working-mode .text-text-strong,
+.syn-working-mode .text-text-soft {
+  color: var(--syn-working-ink);
+}
+
+.syn-working-mode .text-text-secondary {
+  color: var(--syn-working-secondary);
+}
+
+.syn-working-mode .text-text-muted {
+  color: var(--syn-working-muted);
+}
+
+.syn-working-mode .border-border-subtle,
+.syn-working-mode .border-border-strong {
+  border-color: var(--syn-hairline-dark);
+}
+
+.syn-working-mode .bg-base,
+.syn-working-mode .bg-elevated {
+  background: var(--syn-working-bg);
+}
+
+.syn-working-mode .rounded-lg,
+.syn-working-mode .rounded-xl,
+.syn-working-mode .rounded-full,
+.syn-reading-mode .rounded-lg,
+.syn-reading-mode .rounded-xl,
+.syn-reading-mode .rounded-full {
+  border-radius: var(--syn-radius);
+}
+
+.syn-working-mode [class*="shadow"],
+.syn-reading-mode [class*="shadow"] {
+  box-shadow: none;
+}
+
+.sn-page,
+.sn-legal-page,
+.sn-auth-page {
+  --color-base: #05070a;
+  --color-elevated: #0c0f13;
+  --color-overlay: #10141a;
+  --color-surface-strong: #151a21;
+  --color-surface-hover: #1a2028;
+  --color-chip: #10141a;
+  --color-text-primary: #f4f4f7;
+  --color-text-secondary: #a8a8b3;
+  --color-text-muted: #6b7280;
+  --color-text-soft: #d7d7de;
+  --color-text-strong: #f4f4f7;
+  --color-text-dim: #8a93a3;
+  --color-border-subtle: rgba(255, 255, 255, 0.1);
+  --color-border-strong: rgba(255, 255, 255, 0.16);
+  --color-border-muted: rgba(255, 255, 255, 0.2);
+  --color-border-emphasis: rgba(255, 255, 255, 0.24);
+  --color-border-card: rgba(255, 255, 255, 0.1);
+  --color-border-card-hover: rgba(255, 255, 255, 0.18);
+  --color-border-chip: rgba(255, 255, 255, 0.12);
+  --color-auth-ink: #f4f4f7;
+  --color-auth-paper: #05070a;
+  --color-auth-subtle: rgba(255, 255, 255, 0.12);
+  --color-auth-hover: rgba(255, 255, 255, 0.05);
+  --bg-base: #05070a;
+  --bg-elevated: #0c0f13;
+  --bg-overlay: #10141a;
+  --bg-glass: rgba(8, 10, 14, 0.88);
+  --border-subtle: rgba(255, 255, 255, 0.1);
+  --border-strong: rgba(255, 255, 255, 0.16);
+  --border-focus: rgba(31, 67, 50, 0.38);
+  --text-primary: #f4f4f7;
+  --text-secondary: #a8a8b3;
+  --text-muted: #6b7280;
+  --font-sans:
+    "Inter", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", sans-serif;
+  --font-display:
+    "Inter", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, monospace;
 }
 
 .sn-page {

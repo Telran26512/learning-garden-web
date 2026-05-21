@@ -60,10 +60,10 @@ export function AuthPageContent() {
   }
 
   return (
-    <main className="min-h-dvh overflow-x-hidden bg-auth-paper font-sans text-auth-ink lg:grid lg:h-dvh lg:grid-cols-[39%_61%] lg:overflow-hidden">
+    <main className="sn-auth-page min-h-dvh overflow-x-hidden bg-auth-paper font-sans text-auth-ink lg:grid lg:h-dvh lg:grid-cols-[39%_61%] lg:overflow-hidden">
       <section
         aria-labelledby="auth-title"
-        className="relative min-h-dvh bg-white px-6 py-8 pb-24 lg:h-dvh lg:min-h-0 lg:overflow-hidden lg:px-12"
+        className="relative min-h-dvh bg-[#0a0d12] px-6 py-8 pb-24 lg:h-dvh lg:min-h-0 lg:overflow-hidden lg:border-r lg:border-auth-subtle lg:px-12"
       >
         {/* Auth 表单保持 380px 宽；注册态上移，避免桌面视口出现整页滚动。 */}
         <div
@@ -119,7 +119,7 @@ export function AuthPageContent() {
             </Link>
           </div>
           <a
-            className="mb-5 flex h-10 w-full items-center justify-center gap-2.5 border border-auth-subtle bg-white px-3 text-center text-[14px] font-medium text-auth-ink transition hover:bg-auth-hover"
+            className="mb-5 flex h-10 w-full items-center justify-center gap-2.5 border border-auth-subtle bg-white/[0.03] px-3 text-center text-[14px] font-medium text-auth-ink transition hover:bg-auth-hover"
             href={githubURL}
           >
             <GitHubIcon />
@@ -193,7 +193,7 @@ export function AuthPageContent() {
             {!isRegister && (
               <div className="-mt-1 flex justify-end">
                 <a
-                  className="text-[12px] text-text-muted transition hover:text-slate-strong"
+                  className="text-[12px] text-auth-ink/58 transition hover:text-auth-ink"
                   href="mailto:support@synapse.dev?subject=Reset%20password"
                 >
                   忘记密码？
@@ -240,23 +240,23 @@ export function AuthPageContent() {
             )}
 
             {error && (
-              <div className="border border-auth-ink/18 bg-auth-paper px-3 py-2 text-[13px] text-auth-ink">
+              <div className="border border-auth-subtle bg-white/[0.03] px-3 py-2 text-[13px] text-auth-ink">
                 {error}
               </div>
             )}
 
             <button
-              className="h-10 w-full bg-elevated text-[14px] font-medium text-white transition hover:bg-surface-strong disabled:cursor-not-allowed disabled:opacity-60"
+              className="h-10 w-full bg-[var(--syn-accent)] text-[14px] font-medium text-white transition hover:bg-[var(--syn-accent-hover)] disabled:cursor-not-allowed disabled:opacity-60"
               disabled={isSubmitting}
               type="submit"
             >
               {isSubmitting ? "处理中..." : isRegister ? "创建账号" : "登录"}
             </button>
           </form>
-          <p className="mt-6 flex justify-center gap-1 text-center text-[13px] text-text-muted">
+          <p className="mt-6 flex justify-center gap-1 text-center text-[13px] text-auth-ink/58">
             <span>{isRegister ? "已有账号？" : "还没有账号？"}</span>
             <Link
-              className="text-ink-base underline underline-offset-3"
+              className="text-auth-ink underline underline-offset-3"
               href={isRegister ? "/auth?mode=login" : "/auth?mode=register"}
             >
               {isRegister ? "立即登录" : "立即注册"}
@@ -284,7 +284,7 @@ export function AuthPageContent() {
       </section>
 
       <aside
-        className="relative hidden min-h-dvh items-center justify-center overflow-hidden bg-base px-8 py-12 lg:flex lg:h-dvh lg:min-h-0 lg:px-16"
+        className="relative hidden min-h-dvh items-center justify-center overflow-hidden bg-[#06080c] px-8 py-12 lg:flex lg:h-dvh lg:min-h-0 lg:px-16"
         aria-label="Synapse 产品界面预览"
       >
         <ProductMockup />

@@ -13,5 +13,6 @@ export default defineConfig([
     "coverage/**",
     "next-env.d.ts",
     "Synapse/**",
+    "Synapse (3)/**",
   ]),
 ]);

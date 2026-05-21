@@ -1,7 +1,7 @@
 export const WORKSPACE_NAV_ITEMS = [
   "Workspace",
-  "Editor",
+  "Studio",
+  "Explore",
   "Community",
-  "Review",
   "Portfolio",
 ] as const satisfies readonly string[];

@@ -16,12 +16,14 @@ export function ContributionsPanel() {
     .join(" ");
 
   return (
-    <section className="rounded-md border border-border-subtle bg-black p-6">
+    <section className="rounded-[var(--syn-radius)] border border-[var(--syn-hairline-dark)] bg-[var(--syn-working-surface)] p-6">
       <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-[13px] font-medium text-text-secondary">
+        <h2 className="text-[13px] font-medium text-[var(--syn-working-secondary)]">
           过去 30 天
         </h2>
-        <span className="text-[12px] text-text-muted">active blocks / day</span>
+        <span className="text-[12px] text-[var(--syn-working-muted)]">
+          active blocks / day
+        </span>
       </div>
       <div>
         <svg
@@ -32,7 +34,7 @@ export function ContributionsPanel() {
           viewBox={`0 0 ${width} ${height}`}
         >
           <line
-            stroke="#1F1F1F"
+            stroke="#E0E0E0"
             strokeWidth="1"
             x1={padding}
             x2={width - padding}
@@ -42,22 +44,29 @@ export function ContributionsPanel() {
           <polyline
             fill="none"
             points={points}
-            stroke="#D1D5DB"
+            stroke="#1F4332"
             strokeLinecap="round"
             strokeLinejoin="round"
             strokeWidth="1.8"
             vectorEffect="non-scaling-stroke"
           />
         </svg>
-        <div className="mt-3 flex items-center justify-between text-[11px] text-text-secondary sm:text-[12px]">
+        <div className="mt-3 flex items-center justify-between text-[11px] text-[var(--syn-working-secondary)] sm:text-[12px]">
           <span>
-            平均 <span className="font-semibold text-white">4.2</span> / day
+            平均{" "}
+            <span className="font-semibold text-[var(--syn-working-ink)]">
+              4.2
+            </span>{" "}
+            / day
           </span>
           <span>
-            最近 7 天 <span className="font-semibold text-white">32</span>
+            最近 7 天{" "}
+            <span className="font-semibold text-[var(--syn-working-ink)]">
+              32
+            </span>
           </span>
         </div>
-        <div className="mt-2 flex items-center justify-between text-[11px] text-text-muted tabular-nums">
+        <div className="mt-2 flex items-center justify-between text-[11px] text-[var(--syn-working-muted)] tabular-nums">
           <span>4/20</span>
           <span>5/19</span>
         </div>

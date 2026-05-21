@@ -39,7 +39,7 @@ const FALLBACK_PALETTE = {
   math: "#3DDC97",
   code: "#F5B85B",
   paper: "#6FA8DC",
-  concept: "#4ABEFF",
+  concept: "#1F4332",
 };
 
 const STATIC_LAYOUT: Record<string, [number, number]> = {
