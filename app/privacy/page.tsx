@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { SynapseLogo } from "@/components/synapse/synapse-logo";
+import { SynapseLogo } from "@/components/ui/synapse-logo";
 
 export default function PrivacyPage() {
   return (

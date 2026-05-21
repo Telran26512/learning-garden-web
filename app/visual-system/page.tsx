@@ -1,7 +1,4 @@
-import {
-  SynapseLinkMark,
-  SynapseLogo,
-} from "@/components/synapse/synapse-logo";
+import { SynapseLinkMark, SynapseLogo } from "@/components/ui/synapse-logo";
 
 const readingNotes = [
   [

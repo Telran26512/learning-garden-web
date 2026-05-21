@@ -1,7 +1,5 @@
-"use client";
-
 import { Suspense } from "react";
-import { AuthPageContent } from "@/components/auth/auth-form";
+import { AuthPageContent } from "@/features/auth";
 
 export default function AuthPage() {
   return (
