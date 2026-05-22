@@ -15,11 +15,14 @@ export type ExploreFeedItem = {
   color: string;
   comments: number;
   handle: string;
+  id: string;
   meta: string;
+  ownerId: string;
   swatches: readonly string[];
   tags: readonly string[];
   title: string;
   votes: number;
+  views: number;
 };
 
 export type ExploreTrack = readonly [

@@ -1,6 +1,12 @@
 import type { ExploreFeedItem } from "../model/explore-model";
 
-export function FeedCard({ item }: { item: ExploreFeedItem }) {
+export function FeedCard({
+  item,
+  onOpen,
+}: {
+  item: ExploreFeedItem;
+  onOpen?: (item: ExploreFeedItem) => void;
+}) {
   return (
     <article className="border-b border-[var(--syn-hairline-light)] py-7 transition">
       <div className="flex items-start justify-between gap-4">
@@ -29,9 +35,15 @@ export function FeedCard({ item }: { item: ExploreFeedItem }) {
         </div>
       </div>
 
-      <h3 className="syn-title mt-5 text-[26px] leading-snug text-[var(--syn-reading-ink)]">
-        {item.title}
-      </h3>
+      <button
+        className="mt-5 block w-full bg-transparent text-left"
+        onClick={() => onOpen?.(item)}
+        type="button"
+      >
+        <h3 className="syn-title text-[26px] leading-snug text-[var(--syn-reading-ink)] transition hover:text-[var(--syn-accent)]">
+          {item.title}
+        </h3>
+      </button>
       <p className="mt-4 max-w-[760px] text-[15px] leading-[1.78] text-[var(--syn-reading-secondary)]">
         {item.body}
       </p>
@@ -40,6 +52,7 @@ export function FeedCard({ item }: { item: ExploreFeedItem }) {
         <div className="flex items-center gap-5 font-mono text-[12px] text-[var(--syn-reading-muted)]">
           <span>↑ {item.votes}</span>
           <span>● {item.comments}</span>
+          <span>◦ {item.views} views</span>
           <span>↗ {item.cites} cites</span>
         </div>
         <div className="flex flex-wrap gap-x-2 text-[12px] text-[var(--syn-reading-muted)]">

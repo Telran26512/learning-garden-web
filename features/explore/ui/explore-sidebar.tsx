@@ -1,15 +1,21 @@
-import { discoverItems, tagStats } from "../data/explore-fixtures";
+import { discoverItems } from "../data/explore-fixtures";
 import { SidebarHeading } from "./explore-heading";
 
 export function ExploreSidebar({
   activeDiscover,
+  activeTag,
   onDiscoverChange,
+  onTagChange,
+  tagStats,
 }: {
   activeDiscover: string;
+  activeTag: string;
   onDiscoverChange: (id: string) => void;
+  onTagChange: (tag: string) => void;
+  tagStats: readonly (readonly [string, string])[];
 }) {
   return (
-    <aside className="min-h-0 overflow-auto border-r border-[var(--syn-hairline-light)] px-5 py-10">
+    <aside className="sticky top-14 h-[calc(100dvh-3.5rem)] self-start overflow-auto border-r border-[var(--syn-hairline-light)] px-5 py-10">
       <SidebarHeading>Discover</SidebarHeading>
       <div className="space-y-1">
         {discoverItems.map((item) => (
@@ -37,8 +43,14 @@ export function ExploreSidebar({
         <div className="space-y-3">
           {tagStats.map(([tag, count]) => (
             <button
-              className="flex w-full items-center justify-between gap-4 bg-transparent px-1 text-left text-[12px] text-[var(--syn-reading-secondary)] transition hover:text-[var(--syn-reading-ink)]"
+              className={[
+                "flex w-full items-center justify-between gap-4 bg-transparent px-1 text-left text-[12px] transition hover:text-[var(--syn-reading-ink)]",
+                activeTag === tag
+                  ? "text-[var(--syn-accent)]"
+                  : "text-[var(--syn-reading-secondary)]",
+              ].join(" ")}
               key={tag}
+              onClick={() => onTagChange(activeTag === tag ? "" : tag)}
               type="button"
             >
               <span>#{tag}</span>

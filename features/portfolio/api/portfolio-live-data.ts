@@ -6,11 +6,14 @@ import {
   notes,
   paperColumns,
   pinnedTracks,
+  blockDistribution,
+  contributionEntries,
   portfolioExperiments,
   portfolioProfile,
   portfolioStats,
   portfolioTabs,
   portfolioTracks,
+  type ContributionEntry,
   topTopics,
   type GraphNodeType,
   type PortfolioExperiment,
@@ -25,6 +28,13 @@ import {
 } from "../model/portfolio-model";
 
 export type PortfolioViewData = {
+  blockDistribution: readonly {
+    color: string;
+    count: number;
+    label: string;
+    percent: number;
+  }[];
+  contributionEntries: readonly ContributionEntry[];
   experiments: readonly PortfolioExperiment[];
   graphEdges: readonly PortfolioGraphEdge[];
   graphNodes: readonly PortfolioGraphNode[];
@@ -39,6 +49,8 @@ export type PortfolioViewData = {
 };
 
 export const fallbackPortfolioViewData: PortfolioViewData = {
+  blockDistribution,
+  contributionEntries,
   experiments: portfolioExperiments,
   graphEdges,
   graphNodes,
@@ -64,6 +76,8 @@ export function portfolioViewDataFromP2(
 
   return {
     experiments: liveExperiments,
+    blockDistribution: blockDistributionFromPortfolio(portfolio),
+    contributionEntries: contributionEntriesFromPortfolio(portfolio),
     graphEdges: portfolio.graph.edges.map(
       (edge) => [edge.sourceId, edge.targetId] as const,
     ),
@@ -233,6 +247,111 @@ function graphNodesFromPortfolio(portfolio: P2Portfolio): PortfolioGraphNode[] {
       y: Math.round(centerY + Math.sin(angle) * radius),
     };
   });
+}
+
+function contributionEntriesFromPortfolio(
+  portfolio: P2Portfolio,
+): ContributionEntry[] {
+  const source = portfolio.activity ?? [];
+  if (source.length === 0) {
+    return [];
+  }
+  const byDate = new Map(source.map((entry) => [entry.date, entry]));
+  const latestTimestamp = Math.max(
+    ...source.map((entry) => parseDateOnly(entry.date).getTime()),
+  );
+  const endDate = new Date(latestTimestamp);
+  const dayMs = 24 * 60 * 60 * 1000;
+  return Array.from({ length: 53 * 7 }, (_, index) => {
+    const current = new Date(endDate.getTime() - (53 * 7 - 1 - index) * dayMs);
+    const date = formatDateOnly(current);
+    const day = byDate.get(date);
+    const notes = day?.notes ?? 0;
+    const cards = day?.cards ?? 0;
+    const commits = day?.commits ?? 0;
+    const count = day?.count ?? notes + cards + commits;
+    return {
+      count,
+      date,
+      kind: dominantContributionKind(notes, cards, commits),
+      level: contributionLevel(count),
+    };
+  });
+}
+
+function blockDistributionFromPortfolio(
+  portfolio: P2Portfolio,
+): PortfolioViewData["blockDistribution"] {
+  if (portfolio.blockDistribution?.length) {
+    return portfolio.blockDistribution;
+  }
+  const counts: Record<string, number> = {
+    code: 0,
+    math: 0,
+    paper: 0,
+    text: 0,
+  };
+  for (const item of Object.values(portfolio.items).flat()) {
+    const label = blockLabelFromItem(item);
+    const count = metadataNumber(item, "blocks", 0) || 1;
+    counts[label] += count;
+  }
+  const total = Object.values(counts).reduce((sum, count) => sum + count, 0);
+  if (!total) return [];
+  const colors: Record<string, string> = {
+    code: "#FFC247",
+    math: "#75E3B1",
+    paper: "#9BC7FF",
+    text: "#53C7F5",
+  };
+  return ["math", "code", "paper", "text"]
+    .filter((label) => counts[label] > 0)
+    .map((label) => ({
+      color: colors[label],
+      count: counts[label],
+      label,
+      percent: Math.round((counts[label] / total) * 100),
+    }));
+}
+
+function dominantContributionKind(
+  notes: number,
+  cards: number,
+  commits: number,
+): ContributionEntry["kind"] {
+  if (commits > notes && commits > cards) return "commits";
+  if (cards > notes) return "cards";
+  return "notes";
+}
+
+function contributionLevel(count: number): ContributionEntry["level"] {
+  if (count <= 0) return 0;
+  if (count <= 1) return 1;
+  if (count <= 3) return 2;
+  if (count <= 6) return 3;
+  return 4;
+}
+
+function parseDateOnly(date: string) {
+  return new Date(`${date}T00:00:00Z`);
+}
+
+function formatDateOnly(date: Date) {
+  return date.toISOString().slice(0, 10);
+}
+
+function blockLabelFromItem(item: P2ContentItem) {
+  if (item.kind === "paper") return "paper";
+  if (item.kind === "experiment") return "code";
+  const tags = metadataStringArray(item, "tags").map((tag) =>
+    tag.toLowerCase(),
+  );
+  if (tags.some((tag) => ["code", "kernel", "cuda", "triton"].includes(tag))) {
+    return "code";
+  }
+  if (tags.includes("math")) return "math";
+  if (tags.includes("paper") || tags.includes("论文精读")) return "paper";
+  return "text";
 }
 
 function countForTab(portfolio: P2Portfolio, key: PortfolioTab["key"]) {

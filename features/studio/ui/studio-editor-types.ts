@@ -1,5 +1,5 @@
 export type EditorMode = "edit" | "preview";
-export type SaveState = "saved" | "saving";
+export type SaveState = "failed" | "saved" | "saving";
 export type StudioPanel =
   | "history"
   | "link"

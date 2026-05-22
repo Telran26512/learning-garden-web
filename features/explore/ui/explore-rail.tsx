@@ -10,9 +10,29 @@ export function ExploreRail({
 }) {
   return (
     <aside className="min-h-0 overflow-auto border-l border-[var(--syn-hairline-light)] px-6 py-10">
+      <ExploreRailContent followed={followed} onFollowToggle={onFollowToggle} />
+    </aside>
+  );
+}
+
+export function ExploreRailContent({
+  compact = false,
+  followed,
+  onFollowToggle,
+}: {
+  compact?: boolean;
+  followed: string[];
+  onFollowToggle: (name: string) => void;
+}) {
+  const trackRows = compact ? tracks.slice(0, 3) : tracks;
+  const paperRows = compact ? papers.slice(0, 3) : papers;
+  const peopleRows = compact ? people.slice(0, 3) : people;
+
+  return (
+    <>
       <SidebarHeading>本周热门 Track</SidebarHeading>
-      <div className="space-y-5">
-        {tracks.map(([rank, title, handle, score]) => (
+      <div className={compact ? "space-y-3" : "space-y-5"}>
+        {trackRows.map(([rank, title, handle, score]) => (
           <button
             className="grid w-full grid-cols-[34px_minmax(0,1fr)_52px] items-start gap-3 bg-transparent text-left"
             key={title}
@@ -36,12 +56,15 @@ export function ExploreRail({
         ))}
       </div>
 
-      <div className="mt-9">
+      <div className={compact ? "mt-7" : "mt-9"}>
         <SidebarHeading>Recently cited papers</SidebarHeading>
         <div className="space-y-3">
-          {papers.map(([id, title, author, cites]) => (
+          {paperRows.map(([id, title, author, cites]) => (
             <button
-              className="block w-full border-b border-[var(--syn-hairline-light)] py-4 text-left transition hover:text-[var(--syn-accent)]"
+              className={[
+                "block w-full border-b border-[var(--syn-hairline-light)] text-left transition hover:text-[var(--syn-accent)]",
+                compact ? "py-3" : "py-4",
+              ].join(" ")}
               key={id}
               type="button"
             >
@@ -60,10 +83,10 @@ export function ExploreRail({
         </div>
       </div>
 
-      <div className="mt-9">
+      <div className={compact ? "mt-7" : "mt-9"}>
         <SidebarHeading>建议关注</SidebarHeading>
         <div className="space-y-4">
-          {people.map(([name, handle, meta, color]) => {
+          {peopleRows.map(([name, handle, meta, color]) => {
             const isFollowed = followed.includes(name);
 
             return (
@@ -99,6 +122,6 @@ export function ExploreRail({
           })}
         </div>
       </div>
-    </aside>
+    </>
   );
 }

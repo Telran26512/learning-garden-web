@@ -2,10 +2,12 @@ import { describe, expect, test } from "vitest";
 
 import {
   addUniqueTag,
+  buildStudioLinkTargets,
   createRelationship,
   createResource,
   createStudioDraft,
   createStudioHistoryEntry,
+  parsePaperReference,
   parseStudioMarkdown,
   removeTag,
   slugifyTitle,
@@ -110,14 +112,23 @@ describe("studio draft helpers", () => {
   });
 
   test("creates relationship, resource, and history records", () => {
-    expect(createRelationship(2, "implements", "attention.py L34-L58")).toEqual(
-      {
-        icon: "≡",
-        id: "rel-3",
-        rel: "implements",
-        target: "attention.py L34-L58",
-      },
-    );
+    expect(
+      createRelationship(2, "implements", "attention.py L34-L58", {
+        comment: "math step maps to forward pass",
+        source: "scale-1",
+        targetKind: "block",
+        targetPreview: "return attn @ v",
+      }),
+    ).toEqual({
+      comment: "math step maps to forward pass",
+      icon: "≡",
+      id: "rel-3",
+      rel: "implements",
+      source: "scale-1",
+      target: "attention.py L34-L58",
+      targetKind: "block",
+      targetPreview: "return attn @ v",
+    });
     expect(createResource(1, "pdf", "Vaswani 2017", "arxiv.org")).toEqual({
       icon: "§",
       id: "res-2",
@@ -138,5 +149,72 @@ describe("studio draft helpers", () => {
       summary: "Summary",
       title: "Title",
     });
+  });
+
+  test("parses arXiv and DOI paper import inputs", () => {
+    expect(
+      parsePaperReference("https://arxiv.org/abs/1706.03762"),
+    ).toMatchObject({
+      ref: "1706.03762",
+      source: "arxiv",
+      title: "arXiv:1706.03762",
+    });
+    expect(parsePaperReference("10.48550/arXiv.2402.03300")).toMatchObject({
+      ref: "10.48550/arXiv.2402.03300",
+      source: "doi",
+      title: "DOI:10.48550/arXiv.2402.03300",
+    });
+  });
+
+  test("builds searchable link targets for notes and blocks", () => {
+    const currentDraft = {
+      ...createStudioDraft(0, "Attention Note"),
+      markdown: `# Attention Note
+
+::math{anchor=scale step=B}
+qk \\\\
+softmax
+::
+
+::code{lang=python ref=attention.py#L34-L58 anchor=attention-forward}
+return attn @ v
+::
+
+::paper{ref=1706.03762 source=arxiv title="Attention Is All You Need" quote="Attention quote" anchor=§3.2.2}`,
+    };
+    const otherDraft = createStudioDraft(1, "Softmax Note");
+
+    expect(
+      buildStudioLinkTargets(currentDraft, [currentDraft, otherDraft]),
+    ).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: "note:attention-note",
+          kind: "note",
+          label: "Attention Note",
+        }),
+        expect.objectContaining({
+          id: "math:scale-1",
+          kind: "block",
+          label: "B-01 · scale-1",
+        }),
+        expect.objectContaining({
+          id: "code:attention-forward",
+          kind: "block",
+          label: "Code · attention.py#L34-L58",
+          value: "attention-forward",
+        }),
+        expect.objectContaining({
+          id: "paper:§3.2.2",
+          kind: "block",
+          label: "Paper · Attention Is All You Need",
+        }),
+        expect.objectContaining({
+          id: "note:softmax-note",
+          kind: "note",
+          label: "Softmax Note",
+        }),
+      ]),
+    );
   });
 });

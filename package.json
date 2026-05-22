@@ -20,6 +20,16 @@
     "format:check": "prettier --check ."
   },
   "dependencies": {
+    "@codemirror/lang-javascript": "6.2.5",
+    "@codemirror/lang-markdown": "6.5.0",
+    "@codemirror/lang-python": "6.2.1",
+    "@tiptap/core": "3.23.5",
+    "@tiptap/extension-code-block": "3.23.5",
+    "@tiptap/react": "3.23.5",
+    "@tiptap/starter-kit": "3.23.5",
+    "@types/katex": "0.16.8",
+    "codemirror": "6.0.2",
+    "katex": "0.16.47",
     "next": "16.2.6",
     "react": "19.2.6",
     "react-dom": "19.2.6"

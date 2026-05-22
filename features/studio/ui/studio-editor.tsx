@@ -1,8 +1,14 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 
+import { fetchStudioDraft } from "../api/studio-live-data";
 import { publishStudioDraft } from "../api/publish-draft";
+import {
+  STUDIO_AUTOSAVE_DELAY_MS,
+  saveStudioDraftSnapshot,
+} from "../api/studio-autosave";
 import { initialDrafts } from "../model/editor-fixtures";
 import {
   addUniqueTag,
@@ -23,6 +29,7 @@ import { StudioToolbar } from "./studio-toolbar";
 import type { EditorMode, SaveState, StudioPanel } from "./studio-editor-types";
 
 export function StudioEditor() {
+  const searchParams = useSearchParams();
   const [editorMode, setEditorMode] = useState<EditorMode>("edit");
   const [draftItems, setDraftItems] = useState<StudioDraft[]>(initialDrafts);
   const [currentDraftId, setCurrentDraftId] = useState(initialDrafts[0].id);
@@ -33,25 +40,65 @@ export function StudioEditor() {
   );
   const [notice, setNotice] = useState("");
   const autoSaveKeyRef = useRef("");
+  const restoredDraftIdRef = useRef("");
+  const explicitRestoreDraftId = searchParams.get("draft")?.trim() ?? "";
+  const restoreDraftId = explicitRestoreDraftId || initialDrafts[0].id;
   const currentDraft =
     draftItems.find((draft) => draft.id === currentDraftId) ?? draftItems[0];
-  const autoSaveKey = [
-    currentDraft.id,
-    currentDraft.contentType,
-    currentDraft.allowComments,
-    currentDraft.allowDerivatives,
-    currentDraft.license,
-    currentDraft.markdown,
-    JSON.stringify(currentDraft.relationships),
-    JSON.stringify(currentDraft.resources),
-    JSON.stringify(currentDraft.roadmap),
-    currentDraft.slug,
-    currentDraft.status,
-    currentDraft.summary,
-    currentDraft.tags.join(","),
-    currentDraft.title,
-    currentDraft.visibility,
-  ].join("\u0000");
+  const autoSaveKey = draftAutoSaveKey(currentDraft);
+
+  useEffect(() => {
+    if (restoredDraftIdRef.current === restoreDraftId) {
+      return;
+    }
+
+    restoredDraftIdRef.current = restoreDraftId;
+    let cancelled = false;
+
+    void (async () => {
+      try {
+        const restoredDraft = await fetchStudioDraft(restoreDraftId);
+
+        if (cancelled) {
+          return;
+        }
+
+        autoSaveKeyRef.current = draftAutoSaveKey(restoredDraft);
+        setDraftItems((items) => {
+          const exists = items.some((draft) => draft.id === restoredDraft.id);
+
+          if (!exists) {
+            return [restoredDraft, ...items];
+          }
+
+          return items.map((draft) =>
+            draft.id === restoredDraft.id ? restoredDraft : draft,
+          );
+        });
+        setCurrentDraftId(restoredDraft.id);
+        setSaveState("saved");
+        if (explicitRestoreDraftId) {
+          setNotice("已从后端恢复草稿");
+        }
+      } catch (error) {
+        if (cancelled) {
+          return;
+        }
+
+        if (explicitRestoreDraftId) {
+          setNotice(
+            error instanceof Error
+              ? `草稿恢复失败：${error.message}`
+              : "草稿恢复失败",
+          );
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [explicitRestoreDraftId, restoreDraftId]);
 
   useEffect(() => {
     if (!autoSaveKeyRef.current) {
@@ -66,26 +113,51 @@ export function StudioEditor() {
     autoSaveKeyRef.current = autoSaveKey;
     setSaveState("saving");
 
+    let cancelled = false;
     const timeout = window.setTimeout(() => {
-      setDraftItems((items) =>
-        items.map((draft) =>
-          draft.id === currentDraftId
-            ? {
-                ...draft,
-                history: [
-                  createStudioHistoryEntry(draft.history.length, draft),
-                  ...draft.history,
-                ].slice(0, 8),
-                updatedAtLabel: "刚刚",
-              }
-            : draft,
-        ),
-      );
-      setSaveState("saved");
-    }, 600);
+      void (async () => {
+        try {
+          await saveStudioDraftSnapshot(currentDraft);
 
-    return () => window.clearTimeout(timeout);
-  }, [autoSaveKey, currentDraftId]);
+          if (cancelled) {
+            return;
+          }
+
+          setDraftItems((items) =>
+            items.map((draft) =>
+              draft.id === currentDraftId
+                ? {
+                    ...draft,
+                    history: [
+                      createStudioHistoryEntry(draft.history.length, draft),
+                      ...draft.history,
+                    ].slice(0, 8),
+                    updatedAtLabel: "刚刚",
+                  }
+                : draft,
+            ),
+          );
+          setSaveState("saved");
+        } catch (error) {
+          if (cancelled) {
+            return;
+          }
+
+          setSaveState("failed");
+          setNotice(
+            error instanceof Error
+              ? `自动保存失败：${error.message}`
+              : "自动保存失败",
+          );
+        }
+      })();
+    }, STUDIO_AUTOSAVE_DELAY_MS);
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timeout);
+    };
+  }, [autoSaveKey, currentDraft, currentDraftId]);
 
   function updateCurrentDraft(update: Partial<StudioDraft>) {
     setDraftItems((items) =>
@@ -118,11 +190,11 @@ export function StudioEditor() {
 
     try {
       await publishStudioDraft(nextDraft);
+      setSaveState("saved");
       setNotice("已发布到后端");
     } catch (error) {
+      setSaveState("failed");
       setNotice(error instanceof Error ? error.message : "后端发布失败");
-    } finally {
-      setSaveState("saved");
     }
   }
 
@@ -181,7 +253,7 @@ export function StudioEditor() {
   }
 
   return (
-    <section className="syn-working-mode flex min-h-[calc(100dvh-3.5rem)] min-w-[1200px] flex-col text-text-primary [font-family:var(--font-sans)]">
+    <section className="syn-working-mode flex h-[calc(100dvh-3.5rem)] min-w-[1200px] flex-col overflow-hidden text-text-primary [font-family:var(--font-sans)]">
       <StudioToolbar
         currentDraft={currentDraft}
         editorMode={editorMode}
@@ -198,7 +270,7 @@ export function StudioEditor() {
         saveState={saveState}
       />
 
-      <div className="grid min-h-0 flex-1 grid-cols-[260px_minmax(0,1fr)_320px]">
+      <div className="grid min-h-0 flex-1 grid-cols-[260px_minmax(0,1fr)_320px] overflow-hidden">
         <StudioSidebar
           currentDraft={currentDraft}
           drafts={draftItems}
@@ -247,7 +319,8 @@ export function StudioEditor() {
       <StudioPanelOverlay
         activePanel={activePanel}
         currentDraft={currentDraft}
-        onAddRelationship={(rel, target) => {
+        drafts={draftItems}
+        onAddRelationship={(rel, target, options) => {
           updateCurrentDraft({
             relationships: [
               ...currentDraft.relationships,
@@ -255,6 +328,7 @@ export function StudioEditor() {
                 currentDraft.relationships.length,
                 rel,
                 target,
+                options,
               ),
             ],
           });
@@ -277,4 +351,24 @@ export function StudioEditor() {
       />
     </section>
   );
+}
+
+function draftAutoSaveKey(draft: StudioDraft) {
+  return [
+    draft.id,
+    draft.contentType,
+    draft.allowComments,
+    draft.allowDerivatives,
+    draft.license,
+    draft.markdown,
+    JSON.stringify(draft.relationships),
+    JSON.stringify(draft.resources),
+    JSON.stringify(draft.roadmap),
+    draft.slug,
+    draft.status,
+    draft.summary,
+    draft.tags.join(","),
+    draft.title,
+    draft.visibility,
+  ].join("\u0000");
 }

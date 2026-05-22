@@ -3,7 +3,7 @@ import { PRODUCT_MOCKUP_IMAGE } from "../data/product-mockup";
 
 export function ProductMockup() {
   return (
-    <div className="relative w-full max-w-[1040px] translate-x-2 -translate-y-1 overflow-hidden border border-white/10 bg-base shadow-[0_24px_70px_rgba(0,0,0,0.46)]">
+    <div className="relative w-full max-w-[1040px] translate-x-2 -translate-y-1 overflow-hidden border border-white/8 bg-[#101719] shadow-[0_26px_80px_rgba(0,0,0,0.34)]">
       <Image
         alt={PRODUCT_MOCKUP_IMAGE.alt}
         className="block h-auto w-full"

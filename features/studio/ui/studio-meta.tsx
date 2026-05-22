@@ -148,11 +148,11 @@ export function StudioMeta({
         <Section label="关联">
           <div className="space-y-3">
             {currentDraft.relationships.map((item) => (
-              // §5 RELATED 类型图标改为单色 mono 字符
-              <div className="min-w-0" key={item.rel}>
-                <div className="min-w-0">
+              <div className="group relative min-w-0" key={item.id}>
+                <div className="min-w-0 rounded-[var(--syn-radius)] border border-transparent p-2 transition group-hover:border-[var(--syn-hairline-dark)] group-hover:bg-white/[0.02]">
                   <code className="font-mono text-[10.5px] text-[var(--syn-working-muted)]">
-                    {item.rel.replace("_", " ")}
+                    {item.rel.replaceAll("_", " ")}
+                    {item.source ? ` · from ${item.source}` : ""}
                   </code>
                   <button
                     className="mt-0.5 block max-w-full truncate bg-transparent p-0 text-left text-[13px] text-[var(--syn-working-ink)] hover:underline"
@@ -161,7 +161,22 @@ export function StudioMeta({
                   >
                     {item.target}
                   </button>
+                  {item.comment ? (
+                    <p className="mt-1 line-clamp-2 text-[11px] leading-5 text-[var(--syn-working-muted)]">
+                      {item.comment}
+                    </p>
+                  ) : null}
                 </div>
+                {item.targetPreview ? (
+                  <div className="pointer-events-none absolute right-0 top-full z-20 mt-2 hidden w-72 rounded-[var(--syn-radius)] border border-[var(--syn-hairline-dark)] bg-[var(--syn-working-bg)] p-3 shadow-2xl group-focus-within:block group-hover:block">
+                    <div className="font-mono text-[10px] uppercase tracking-[0.12em] text-[var(--syn-working-muted)]">
+                      {item.targetKind ?? "target"} preview
+                    </div>
+                    <p className="mt-2 max-h-28 overflow-hidden whitespace-pre-wrap text-[11.5px] leading-5 text-text-secondary">
+                      {item.targetPreview}
+                    </p>
+                  </div>
+                ) : null}
               </div>
             ))}
           </div>

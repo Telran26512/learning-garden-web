@@ -28,7 +28,7 @@ export function CommunityPage() {
         <div className="mt-8 grid gap-7 xl:grid-cols-[minmax(0,1fr)_400px]">
           <main className="min-w-0 space-y-5">
             {feedItems.map((item) => (
-              <FeedCard item={item} key={`${item.kind}-${item.title}`} />
+              <FeedCard item={item} key={item.id} />
             ))}
 
             <div className="py-7 text-center font-mono text-[12px] text-text-muted">

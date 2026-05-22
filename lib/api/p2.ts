@@ -69,7 +69,24 @@ export type P2Graph = {
   nodes: P2GraphNode[];
 };
 
+export type P2PortfolioActivityDay = {
+  cards: number;
+  commits: number;
+  count: number;
+  date: string;
+  notes: number;
+};
+
+export type P2BlockDistributionEntry = {
+  color: string;
+  count: number;
+  label: string;
+  percent: number;
+};
+
 export type P2Portfolio = {
+  activity?: P2PortfolioActivityDay[];
+  blockDistribution?: P2BlockDistributionEntry[];
   graph: P2Graph;
   items: Record<P2ContentKind, P2ContentItem[]>;
   profile: P2PublicProfile;

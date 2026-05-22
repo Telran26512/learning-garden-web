@@ -25,6 +25,7 @@ export type CommunityFeedItem = {
   avatar: string;
   body?: string;
   footnote?: string;
+  id: string;
   kind: CommunityFeedKind;
   label?: string;
   meta: string;
@@ -101,6 +102,7 @@ export const communityFeed: readonly CommunityFeedItem[] = [
       "23 discussions",
       "● matched your interests · 92%",
     ],
+    id: "prototype-track-rlhf-from-scratch",
     title: "RLHF from Scratch · 一周一篇",
   },
   {
@@ -112,6 +114,7 @@ export const communityFeed: readonly CommunityFeedItem[] = [
     label: "Paper",
     meta: "3h ago",
     metrics: ["▲ 142", "↪ 28 replies", "◷ save", "↗ share"],
+    id: "prototype-thread-grpo-advantage",
     paper: "Group Relative Policy Optimization (GRPO) · Shao et al. · DeepSeek",
     quote:
       "原文里把 group baseline 写成 (r − mean) / std,但是从 variance reduction 的角度,这并不等价于标准的 advantage normalization。",
@@ -126,6 +129,7 @@ export const communityFeed: readonly CommunityFeedItem[] = [
     label: "Flash Attention 拆解",
     meta: "6h ago",
     metrics: ["▲ 87", "↪ 12 replies", "↗ 4 reblogs", "◷ save"],
+    id: "prototype-note-flash-attention-io",
     quote:
       "IO(FA)=O(N²d² / M),其中 M = SRAM size。把 attention matrix 切成 b_r × b_c 的 tile,每个 tile 都需要把对应的 Q,K,V 子块加载进 SRAM 一次。",
     tags: ["attention", "memory", "IO-aware", "推导"],
@@ -148,6 +152,7 @@ export const communityFeed: readonly CommunityFeedItem[] = [
       { label: "Questions queued", value: "12" },
       { label: "+ 中文 channel", value: "EN" },
     ],
+    id: "prototype-reading-session-speculative-decoding",
     title: "本周精读 · Speculative Decoding 的接受率分析",
   },
   {
@@ -159,6 +164,7 @@ export const communityFeed: readonly CommunityFeedItem[] = [
     label: "Experiment",
     meta: "9h ago",
     metrics: ["▲ 213", "↪ 41 replies", "⌁ open in Synapse Lab", "↗ share"],
+    id: "prototype-experiment-triton-fa2",
     title: "triton-fa2-vs-cuda-fa2 · throughput at long context",
   },
   {
@@ -175,6 +181,7 @@ export const communityFeed: readonly CommunityFeedItem[] = [
       "6 from researchers you follow",
       "◷ save",
     ],
+    id: "prototype-question-dpo-ppo-small-model",
     tags: ["RLHF", "DPO", "PPO", "small-model"],
     title:
       "在 1B 以下小模型上,DPO 和 PPO 哪个更稳?你们的 hyperparam sensitivity 看起来什么样?",
@@ -188,6 +195,7 @@ export const communityFeed: readonly CommunityFeedItem[] = [
     label: "⋆ Track shipped · Trending #4",
     meta: "11 notes · 8 papers · 4 reproductions",
     metrics: ["892 ↑", "54 forks", "16 discussions"],
+    id: "prototype-track-score-based-models",
     title: "Score-based Models · 从 NCSN 到 EDM",
   },
 ];

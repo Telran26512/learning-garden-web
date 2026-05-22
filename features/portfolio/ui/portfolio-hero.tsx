@@ -5,12 +5,18 @@ import type { PortfolioTabKey } from "../model/portfolio-model";
 import type { PortfolioViewData } from "../api/portfolio-live-data";
 
 export function EditorialHero({
+  followDisabled,
+  followNotice,
+  followPending,
   followed,
   onFollowToggle,
   onShare,
   profile,
   shareNotice,
 }: {
+  followDisabled?: boolean;
+  followNotice?: string;
+  followPending?: boolean;
   followed: boolean;
   onFollowToggle: () => void;
   onShare: () => void;
@@ -100,13 +106,25 @@ export function EditorialHero({
             {shareNotice || "Share"}
           </button>
           <button
-            className="h-9 bg-[var(--syn-accent)] px-4 text-[13px] font-medium text-[#FFFFFF] transition hover:bg-[var(--syn-accent-hover)] active:translate-y-px"
+            className="h-9 bg-[var(--syn-accent)] px-4 text-[13px] font-medium text-[#FFFFFF] transition hover:bg-[var(--syn-accent-hover)] active:translate-y-px disabled:cursor-not-allowed disabled:opacity-55"
+            disabled={followDisabled}
             onClick={onFollowToggle}
             type="button"
           >
-            {followed ? "Following" : "Follow"}
+            {followPending
+              ? "处理中"
+              : followDisabled && !followed
+                ? "Own profile"
+                : followed
+                  ? "Following"
+                  : "Follow"}
           </button>
         </div>
+        {followNotice ? (
+          <p className="mt-3 text-[12px] text-[var(--syn-reading-secondary)]">
+            {followNotice}
+          </p>
+        ) : null}
       </aside>
     </header>
   );

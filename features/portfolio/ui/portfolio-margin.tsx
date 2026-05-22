@@ -30,6 +30,7 @@ export function PortfolioMargin({
         onFilterChange={onFilterChange}
       />
       <QuietStats stats={data.stats} />
+      <BlockDistribution distribution={data.blockDistribution} />
       <TopicsList topTopics={data.topTopics} />
     </aside>
   );
@@ -114,6 +115,53 @@ function QuietStats({ stats }: { stats: PortfolioViewData["stats"] }) {
             </dt>
             <dd className="font-mono text-[12px] text-[var(--syn-reading-ink)]">
               {item.value}
+            </dd>
+          </div>
+        ))}
+      </dl>
+    </section>
+  );
+}
+
+function BlockDistribution({
+  distribution,
+}: {
+  distribution: PortfolioViewData["blockDistribution"];
+}) {
+  if (distribution.length === 0) {
+    return null;
+  }
+
+  return (
+    <section className="border-t border-[var(--syn-hairline-light)] pt-5">
+      <h2 className="[font-family:var(--font-display)] text-[18px] font-medium text-[var(--syn-reading-ink)]">
+        Block distribution
+      </h2>
+      <div className="mt-4 flex h-2 overflow-hidden rounded-full bg-[var(--syn-hairline-light)]">
+        {distribution.map((item) => (
+          <span
+            aria-label={`${item.label}: ${item.percent}%`}
+            key={item.label}
+            style={{ backgroundColor: item.color, width: `${item.percent}%` }}
+          />
+        ))}
+      </div>
+      <dl className="mt-4 space-y-2">
+        {distribution.map((item) => (
+          <div
+            className="flex items-center justify-between gap-4"
+            key={item.label}
+          >
+            <dt className="flex items-center gap-2 text-[var(--syn-reading-secondary)]">
+              <span
+                aria-hidden="true"
+                className="size-2 rounded-full"
+                style={{ backgroundColor: item.color }}
+              />
+              {item.label}
+            </dt>
+            <dd className="font-mono text-[12px] text-[var(--syn-reading-ink)]">
+              {item.count} · {item.percent}%
             </dd>
           </div>
         ))}

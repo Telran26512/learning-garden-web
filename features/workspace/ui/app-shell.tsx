@@ -4,7 +4,10 @@ import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { CommunityPage } from "@/features/community";
 import { ExplorePage } from "@/features/explore";
+import { KnowledgeGraphPage } from "@/features/graph";
+import { useNotifications } from "@/features/notifications";
 import { PortfolioPage, portfolioProfile } from "@/features/portfolio";
+import { NoteReadingPage } from "@/features/reader";
 import { StudioEditor } from "@/features/studio";
 import { SynapseLogo } from "@/components/ui/synapse-logo";
 import {
@@ -32,6 +35,7 @@ function AppHomeContent() {
   const searchParams = useSearchParams();
   const [user, setUser] = useState<SynapseUser | null>(null);
   const [status, setStatus] = useState<"loading" | "ready">("loading");
+  const notifications = useNotifications(status === "ready" && Boolean(user));
 
   useEffect(() => {
     let cancelled = false;
@@ -67,10 +71,20 @@ function AppHomeContent() {
   const currentView = searchParams.get("view");
   const isEditorView = currentView === "editor";
   const isExploreView = currentView === "explore";
+  const isGraphView = currentView === "graph";
+  const isNoteView = currentView === "note";
   const isCommunityView = currentView === "community";
   const isPortfolioView = currentView === "portfolio";
+  const profileHandle =
+    searchParams.get("handle") || user?.handle || "xiaobin-cao";
   const appMode =
-    isExploreView || isCommunityView || isPortfolioView ? "reading" : "working";
+    isExploreView ||
+    isGraphView ||
+    isNoteView ||
+    isCommunityView ||
+    isPortfolioView
+      ? "reading"
+      : "working";
 
   return (
     <main
@@ -86,28 +100,43 @@ function AppHomeContent() {
             ? "Studio"
             : isExploreView
               ? "Explore"
-              : isCommunityView
-                ? "Community"
-                : isPortfolioView
-                  ? "Portfolio"
-                  : "Workspace"
+              : isGraphView || isNoteView
+                ? "Explore"
+                : isCommunityView
+                  ? "Community"
+                  : isPortfolioView
+                    ? "Portfolio"
+                    : "Workspace"
         }
         avatarImageSrc={portfolioProfile.avatarImageSrc}
         displayName={displayName}
         mode={appMode}
+        notificationCount={notifications.unread}
+        notificationError={notifications.error}
+        notificationItems={notifications.items}
+        onNotificationsRead={notifications.markRead}
         onLogout={handleLogout}
         shortName={shortName}
       />
 
       {isEditorView ? <StudioEditor /> : null}
       {isExploreView ? <ExplorePage /> : null}
+      {isGraphView ? <KnowledgeGraphPage /> : null}
+      {isNoteView ? (
+        <NoteReadingPage noteId={searchParams.get("id") ?? ""} />
+      ) : null}
       {isCommunityView ? <CommunityPage /> : null}
       {isPortfolioView ? (
-        <PortfolioPage profileHandle={user?.handle || "xiaobin-cao"} />
+        <PortfolioPage
+          currentUserHandle={user?.handle || ""}
+          profileHandle={profileHandle}
+        />
       ) : null}
 
       {!isEditorView &&
       !isExploreView &&
+      !isGraphView &&
+      !isNoteView &&
       !isCommunityView &&
       !isPortfolioView ? (
         <div className="mx-auto grid max-w-[1840px] gap-8 px-4 pb-0 pt-12 sm:px-6 lg:grid-cols-[minmax(0,1fr)_470px] lg:px-11">

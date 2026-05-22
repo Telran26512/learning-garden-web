@@ -2,7 +2,7 @@ export function GitHubIcon() {
   return (
     <svg
       aria-hidden="true"
-      className="size-4 shrink-0 text-ink-base"
+      className="size-4 shrink-0 text-auth-ink/82"
       fill="currentColor"
       viewBox="0 0 16 16"
     >

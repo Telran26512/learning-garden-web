@@ -4,6 +4,7 @@ import { useMemo, useState, type ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { SynapseLogo } from "@/components/ui/synapse-logo";
+import type { HeaderNotificationItem } from "@/features/notifications";
 import { WORKSPACE_NAV_ITEMS } from "../data/nav-items";
 
 type WorkspaceHeaderProps = {
@@ -11,7 +12,11 @@ type WorkspaceHeaderProps = {
   avatarImageSrc?: string;
   displayName: string;
   mode?: "reading" | "working";
+  notificationCount?: number;
+  notificationError?: string | null;
+  notificationItems?: HeaderNotificationItem[];
   shortName: string;
+  onNotificationsRead?: () => void | Promise<void>;
   onLogout: () => void | Promise<void>;
 };
 
@@ -25,10 +30,25 @@ const commandItems = [
   { href: "/app?view=portfolio&tab=tracks", label: "查看公开 Track" },
 ] as const;
 
-const notifications = [
-  "Vaswani 2017 已完成 embedding",
-  "RoFormer 阅读进入 Explore 推荐",
-  "attention.py 资源同步完成",
+const fallbackNotifications: HeaderNotificationItem[] = [
+  {
+    body: "Vaswani 2017",
+    id: "embedding-ready",
+    title: "embedding 已完成",
+    unread: true,
+  },
+  {
+    body: "RoFormer 阅读",
+    id: "explore-recommendation",
+    title: "进入 Explore 推荐",
+    unread: true,
+  },
+  {
+    body: "attention.py",
+    id: "resource-synced",
+    title: "资源同步完成",
+    unread: true,
+  },
 ];
 
 export function WorkspaceHeader({
@@ -36,7 +56,11 @@ export function WorkspaceHeader({
   avatarImageSrc,
   displayName,
   mode = "working",
+  notificationCount,
+  notificationError,
+  notificationItems,
   shortName,
+  onNotificationsRead,
   onLogout,
 }: WorkspaceHeaderProps) {
   const [newMenuOpen, setNewMenuOpen] = useState(false);
@@ -44,7 +68,9 @@ export function WorkspaceHeader({
   const [query, setQuery] = useState("");
   const [searchFocused, setSearchFocused] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
-  const [noticeCount, setNoticeCount] = useState(notifications.length);
+  const [fallbackNoticeCount, setFallbackNoticeCount] = useState(
+    fallbackNotifications.length,
+  );
   // §1 用户名超过 12 个字符时收敛，避免 admin-vip 一类名称被强制换行。
   const displayLabel =
     displayName.length > 12 ? `${displayName.slice(0, 10)}...` : displayName;
@@ -60,6 +86,8 @@ export function WorkspaceHeader({
     );
   }, [query]);
   const reading = mode === "reading";
+  const resolvedNotifications = notificationItems ?? fallbackNotifications;
+  const noticeCount = notificationCount ?? fallbackNoticeCount;
   const headerTone = reading
     ? {
         active:
@@ -214,8 +242,14 @@ export function WorkspaceHeader({
               type="button"
               aria-label="通知"
               onClick={() => {
-                setNotificationOpen((open) => !open);
-                setNoticeCount(0);
+                const nextOpen = !notificationOpen;
+                setNotificationOpen(nextOpen);
+                if (nextOpen) {
+                  if (notificationCount === undefined) {
+                    setFallbackNoticeCount(0);
+                  }
+                  void onNotificationsRead?.();
+                }
               }}
             >
               <BellIcon />
@@ -228,13 +262,26 @@ export function WorkspaceHeader({
                 <div className="px-2 py-1 text-[11px] text-text-muted">
                   通知
                 </div>
-                {notifications.map((item) => (
+                {notificationError ? (
+                  <div className="rounded-[3px] px-2 py-2 text-[12px] leading-5 text-danger">
+                    通知接口请求失败：{notificationError}
+                  </div>
+                ) : null}
+                {!notificationError && resolvedNotifications.length === 0 ? (
+                  <div className="px-2 py-2 text-[12px] text-text-muted">
+                    暂无通知
+                  </div>
+                ) : null}
+                {resolvedNotifications.map((item) => (
                   <button
                     className="block w-full rounded-[3px] px-2 py-2 text-left text-[12px] transition hover:text-[var(--syn-accent)]"
-                    key={item}
+                    key={item.id}
                     type="button"
                   >
-                    {item}
+                    <span className="block font-medium">{item.title}</span>
+                    <span className="mt-0.5 block truncate text-[11px] text-text-muted">
+                      {item.body}
+                    </span>
                   </button>
                 ))}
               </HeaderMenu>

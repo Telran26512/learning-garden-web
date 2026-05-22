@@ -1,3 +1,11 @@
+import { deriveMathStepAnchors } from "./block-editor-model";
+import {
+  studioMarkdownToTiptapDoc,
+  type MathBlockAttrs,
+  type PaperBlockAttrs,
+  type SynapseCodeBlockAttrs,
+} from "./tiptap-block-schema";
+
 export type StudioContentType =
   | "Concept"
   | "Paper Note"
@@ -8,12 +16,17 @@ export type StudioDraftStatus = "draft" | "published";
 export type StudioVisibility = "Private" | "Unlisted" | "Public";
 export type StudioRelationType = "derives_from" | "implements" | "cites";
 export type StudioResourceKind = "code" | "pdf" | "notebook";
+export type StudioLinkTargetKind = "block" | "note";
 
 export type StudioRelationship = {
+  comment?: string;
   icon: string;
   id: string;
   rel: StudioRelationType;
+  source?: string;
   target: string;
+  targetKind?: StudioLinkTargetKind;
+  targetPreview?: string;
 };
 
 export type StudioResource = {
@@ -70,6 +83,20 @@ export type StudioMarkdownBlock =
   | { lang: string; ref: string; type: "code" }
   | { back: string; front: string; type: "card" }
   | { anchor: string; ref: string; type: "paper" };
+
+export type StudioLinkTarget = {
+  id: string;
+  kind: StudioLinkTargetKind;
+  label: string;
+  preview: string;
+  value: string;
+};
+
+export type PaperReferenceImport = {
+  ref: string;
+  source: "arxiv" | "doi" | "manual";
+  title: string;
+};
 
 const relationIconByType: Record<StudioRelationType, string> = {
   cites: "※",
@@ -151,12 +178,22 @@ export function createRelationship(
   existingCount: number,
   rel: StudioRelationType,
   target: string,
+  options: {
+    comment?: string;
+    source?: string;
+    targetKind?: StudioLinkTargetKind;
+    targetPreview?: string;
+  } = {},
 ): StudioRelationship {
   return {
+    ...(options.comment ? { comment: options.comment } : {}),
     icon: relationIconByType[rel],
     id: `rel-${existingCount + 1}`,
     rel,
+    ...(options.source ? { source: options.source } : {}),
     target,
+    ...(options.targetKind ? { targetKind: options.targetKind } : {}),
+    ...(options.targetPreview ? { targetPreview: options.targetPreview } : {}),
   };
 }
 
@@ -186,6 +223,101 @@ export function createStudioHistoryEntry(
     summary: draft.summary,
     title: draft.title,
   };
+}
+
+export function parsePaperReference(input: string): PaperReferenceImport {
+  const value = input.trim();
+  const doiMatch = /(10\.\d{4,9}\/[-._;()/:A-Z0-9]+)/iu.exec(value);
+
+  if (doiMatch) {
+    return {
+      ref: doiMatch[1],
+      source: "doi",
+      title: `DOI:${doiMatch[1]}`,
+    };
+  }
+
+  const arxivMatch =
+    /(?:arxiv\.org\/(?:abs|pdf)\/|arxiv:)?(\d{4}\.\d{4,5})(?:v\d+)?/iu.exec(
+      value,
+    );
+
+  if (arxivMatch) {
+    return {
+      ref: arxivMatch[1],
+      source: "arxiv",
+      title: `arXiv:${arxivMatch[1]}`,
+    };
+  }
+
+  return {
+    ref: value,
+    source: "manual",
+    title: value || "Untitled Paper",
+  };
+}
+
+export function buildStudioLinkTargets(
+  currentDraft: StudioDraft,
+  drafts: StudioDraft[],
+): StudioLinkTarget[] {
+  const noteTargets = drafts.map((draft) => ({
+    id: `note:${draft.slug}`,
+    kind: "note" as const,
+    label: draft.title,
+    preview: draft.summary || draft.markdown.slice(0, 140),
+    value: draft.slug,
+  }));
+  const doc = studioMarkdownToTiptapDoc(currentDraft.markdown);
+  const blockTargets = (doc.content ?? []).flatMap(
+    (node): StudioLinkTarget[] => {
+      if (node.type === "mathBlock") {
+        const attrs = node.attrs as MathBlockAttrs;
+
+        return deriveMathStepAnchors(attrs).map((step) => ({
+          id: `math:${step.anchor}`,
+          kind: "block",
+          label: `${step.label} · ${step.anchor}`,
+          preview: step.latex,
+          value: step.anchor,
+        }));
+      }
+
+      if (node.type === "codeBlock") {
+        const attrs = node.attrs as SynapseCodeBlockAttrs;
+        const value = attrs.anchor || attrs.ref || "code-block";
+
+        return [
+          {
+            id: `code:${value}`,
+            kind: "block",
+            label: `Code · ${attrs.ref || attrs.language}`,
+            preview: attrs.code || `${attrs.language} code block`,
+            value,
+          },
+        ];
+      }
+
+      if (node.type === "paperBlock") {
+        const attrs = node.attrs as PaperBlockAttrs;
+        const value = attrs.anchor || attrs.ref;
+
+        return [
+          {
+            id: `paper:${value}`,
+            kind: "block",
+            label: `Paper · ${attrs.title || attrs.ref}`,
+            preview: attrs.quote || `${attrs.source}:${attrs.ref}`,
+            value,
+          },
+        ];
+      }
+
+      return [];
+    },
+  );
+
+  return [...blockTargets, ...noteTargets];
 }
 
 export function parseStudioMarkdown(source: string): StudioMarkdownBlock[] {

@@ -46,4 +46,36 @@ describe("community live data mapper", () => {
       metrics: ["▲ 7", "↪ 3 blocks", "↗ share"],
     });
   });
+
+  it("preserves backend ids for duplicate-title feed rows", () => {
+    const feed = communityFeedFromP2({
+      items: [
+        {
+          actor: "Xiaobin Cao",
+          createdAt: "2026-05-20T00:00:00Z",
+          id: "note-a",
+          kind: "note",
+          metadata: { tags: ["attention"] },
+          summary: "first",
+          title: "Multi-Head Attention",
+          type: "content_published",
+          updatedAt: "2026-05-20T00:00:00Z",
+        },
+        {
+          actor: "Zhe Wen",
+          createdAt: "2026-05-21T00:00:00Z",
+          id: "note-b",
+          kind: "note",
+          metadata: { tags: ["attention"] },
+          summary: "second",
+          title: "Multi-Head Attention",
+          type: "content_published",
+          updatedAt: "2026-05-21T00:00:00Z",
+        },
+      ],
+      total: 2,
+    } satisfies P2CommunityFeed);
+
+    expect(feed.map((item) => item.id)).toEqual(["note-a", "note-b"]);
+  });
 });

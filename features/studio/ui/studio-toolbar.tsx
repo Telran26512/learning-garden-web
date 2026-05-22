@@ -32,7 +32,11 @@ export function StudioToolbar({
   const saveLabel =
     saveState === "saving"
       ? "正在保存"
-      : `已自动保存 ${currentDraft.updatedAtLabel}`;
+      : saveState === "failed"
+        ? "自动保存失败"
+        : `已自动保存 ${currentDraft.updatedAtLabel}`;
+  const saveLabelClass =
+    saveState === "failed" ? "text-danger" : "text-[var(--syn-working-muted)]";
 
   return (
     <div className="flex h-[52px] shrink-0 items-center border-b border-[var(--syn-hairline-dark)] bg-[var(--syn-working-bg)] px-6">
@@ -57,9 +61,7 @@ export function StudioToolbar({
           <span className="text-[12px] text-[var(--syn-working-secondary)]">
             {statusLabel}
           </span>
-          <span className="text-[10px] text-[var(--syn-working-muted)]">
-            · {saveLabel}
-          </span>
+          <span className={`text-[10px] ${saveLabelClass}`}>· {saveLabel}</span>
         </button>
       </div>
 

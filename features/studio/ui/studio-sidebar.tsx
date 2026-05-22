@@ -19,7 +19,7 @@ export function StudioSidebar({
   onTypeSelect: (contentType: StudioContentType) => void;
 }) {
   return (
-    <aside className="min-h-0 overflow-auto border-r border-[var(--syn-hairline-dark)] bg-[var(--syn-working-bg)] px-3 py-5">
+    <aside className="sticky top-0 min-h-0 h-full overflow-y-auto border-r border-[var(--syn-hairline-dark)] bg-[var(--syn-working-bg)] px-3 py-5">
       {/* §4 label 只保留中文，无大写英文/letter-spacing */}
       <SidebarLabel>类型</SidebarLabel>
       <div className="space-y-1">

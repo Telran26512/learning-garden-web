@@ -4,8 +4,8 @@ import {
   type StudioDraft,
 } from "../model/studio-editor-model";
 import { EditableSlug } from "./studio-fields";
-import { GithubMarkdownEditor } from "./github-markdown-editor";
 import type { EditorMode } from "./studio-editor-types";
+import { TiptapStudioEditor } from "./tiptap-studio-editor";
 
 export function EditorCanvas({
   currentDraft,
@@ -48,8 +48,7 @@ export function EditorCanvas({
           value={currentDraft.summary}
         />
 
-        {/* §11 GitHub 风格文件编辑器：Edit / Preview tabs，点击 Preview 才预览 */}
-        <GithubMarkdownEditor
+        <TiptapStudioEditor
           markdown={currentDraft.markdown}
           mode={editorMode}
           onMarkdownChange={(markdown) => onDraftChange({ markdown })}

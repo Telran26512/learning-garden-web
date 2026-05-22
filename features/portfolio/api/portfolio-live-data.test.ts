@@ -26,6 +26,18 @@ describe("portfolio live data mapper", () => {
           },
         ],
       },
+      activity: [
+        {
+          cards: 1,
+          commits: 0,
+          count: 3,
+          date: "2026-05-20",
+          notes: 2,
+        },
+      ],
+      blockDistribution: [
+        { color: "#75E3B1", count: 3, label: "math", percent: 100 },
+      ],
       items: {
         experiment: [],
         note: [
@@ -99,5 +111,17 @@ describe("portfolio live data mapper", () => {
     });
     expect(view.graphEdges).toEqual([["note-1", "track-1"]]);
     expect(view.topTopics[0]).toEqual(["Transformer", 2]);
+    expect(view.blockDistribution[0]).toMatchObject({
+      count: 3,
+      label: "math",
+      percent: 100,
+    });
+    expect(view.contributionEntries).toContainEqual(
+      expect.objectContaining({
+        count: 3,
+        date: "2026-05-20",
+        kind: "notes",
+      }),
+    );
   });
 });

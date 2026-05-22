@@ -129,17 +129,23 @@ export {
   topTopics,
 } from "../data/portfolio-fixtures";
 
-export function filterContributionEntries(filter: ContributionFilter) {
+export function filterContributionEntries(
+  filter: ContributionFilter,
+  entries: readonly ContributionEntry[] = contributionEntries,
+) {
   if (filter === "all") {
-    return contributionEntries;
+    return entries;
   }
 
-  return contributionEntries.filter((entry) => entry.kind === filter);
+  return entries.filter((entry) => entry.kind === filter);
 }
 
-export function buildContributionWeeks(filter: ContributionFilter) {
+export function buildContributionWeeks(
+  filter: ContributionFilter,
+  entries: readonly ContributionEntry[] = contributionEntries,
+) {
   return Array.from({ length: 53 }, (_, weekIndex) =>
-    contributionEntries
+    entries
       .slice(weekIndex * 7, weekIndex * 7 + 7)
       .map((entry) =>
         filter === "all" || entry.kind === filter
@@ -149,8 +155,11 @@ export function buildContributionWeeks(filter: ContributionFilter) {
   );
 }
 
-export function countActiveContributionDays(filter: ContributionFilter) {
-  return buildContributionWeeks(filter)
+export function countActiveContributionDays(
+  filter: ContributionFilter,
+  entries: readonly ContributionEntry[] = contributionEntries,
+) {
+  return buildContributionWeeks(filter, entries)
     .flat()
     .filter((entry) => entry.count > 0).length;
 }
